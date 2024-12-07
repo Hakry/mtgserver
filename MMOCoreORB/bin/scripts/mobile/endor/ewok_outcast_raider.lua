@@ -32,7 +32,7 @@ ewok_outcast_raider = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "ewok", chance = 10000000}
+				{group = "gondula_tribe_tier_1", chance = 10000000}
 			},
 			lootChance = 1620000
 		}
@@ -43,7 +43,7 @@ ewok_outcast_raider = Creature:new {
 	primaryWeapon = "ewok_ranged",
 	secondaryWeapon = "ewok_ranged",
 	conversationTemplate = "",
-	
+
 	-- primaryAttacks and secondaryAttacks should be separate skill groups specific to the weapon type listed in primaryWeapon and secondaryWeapon
 	-- Use merge() to merge groups in creatureskills.lua together. If a weapon is set to "none", set the attacks variable to empty brackets
 	primaryAttacks = merge(riflemanmaster,marksmanmaster),

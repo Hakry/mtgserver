@@ -34,8 +34,7 @@ gifted_gondula_shaman = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "ewok", chance = 9000000},
-				{group = "wearables_uncommon", chance = 1000000},
+				{group = "gondula_tribe_tier_2", chance = 10000000}
 			},
 			lootChance = 1920000
 		}
@@ -46,7 +45,7 @@ gifted_gondula_shaman = Creature:new {
 	primaryWeapon = "ewok_ranged",
 	secondaryWeapon = "ewok_melee",
 	conversationTemplate = "",
-	
+
 	-- primaryAttacks and secondaryAttacks should be separate skill groups specific to the weapon type listed in primaryWeapon and secondaryWeapon
 	-- Use merge() to merge groups in creatureskills.lua together. If a weapon is set to "none", set the attacks variable to empty brackets
 	primaryAttacks = merge(riflemanmaster,marksmanmaster),
