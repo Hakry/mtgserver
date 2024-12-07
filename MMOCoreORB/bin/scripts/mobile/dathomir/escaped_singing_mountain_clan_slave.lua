@@ -32,10 +32,7 @@ escaped_singing_mountain_clan_slave = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "junk", chance = 4500000},
-				{group = "tailor_components", chance = 2500000},
-				{group = "loot_kit_parts", chance = 1500000},
-				{group = "wearables_common", chance = 1500000}
+				{group = "slave_tier_1", chance = 10000000}
 			}
 		}
 	},
@@ -45,7 +42,7 @@ escaped_singing_mountain_clan_slave = Creature:new {
 	primaryWeapon = "primitive_weapons",
 	secondaryWeapon = "unarmed",
 	conversationTemplate = "",
-	
+
 	-- primaryAttacks and secondaryAttacks should be separate skill groups specific to the weapon type listed in primaryWeapon and secondaryWeapon
 	-- Use merge() to merge groups in creatureskills.lua together. If a weapon is set to "none", set the attacks variable to empty brackets
 	primaryAttacks = merge(pikemanmaster,fencermaster,brawlermaster),
