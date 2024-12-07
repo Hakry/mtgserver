@@ -386,10 +386,6 @@ namespace conf {
 			return getInt("Core3.MantisPort", 3306);
 		}
 
-		inline const String& getLatestTre() {
-			return getString("Core3.TreManager.LatestTre", "mtg_patch_023.tre");
-		}
-
 		inline const Vector<String>& getTreFiles() {
 			return getStringVector("Core3.TreFiles");
 		}
@@ -739,45 +735,6 @@ namespace conf {
 			return cachedMinSpawnDelay;
 		}
 
-		inline int getMinSpaceSpawnInterval() {
-			static uint32 cachedVersion = 0;
-			static int cachedMinSpaceSpawnDelay;
-
-			if (configVersion.get() > cachedVersion) {
-				Locker guard(&mutex);
-				cachedMinSpaceSpawnDelay = getInt("Core3.Regions.minimumSpaceSpawnInterval", 5000);
-				cachedVersion = configVersion.get();
-			}
-
-			return cachedMinSpaceSpawnDelay;
-		}
-
-		inline bool disableWorldSpawns() {
-			static uint32 cachedVersion = 0;
-			static bool cachedDisableWorldSpawns;
-
-			if (configVersion.get() > cachedVersion) {
-				Locker guard(&mutex);
-				cachedDisableWorldSpawns = getBool("Core3.Regions.DisableWorldSpawns", false);
-				cachedVersion = configVersion.get();
-			}
-
-			return cachedDisableWorldSpawns;
-		}
-
-		inline bool disableSpaceSpawns() {
-			static uint32 cachedVersion = 0;
-			static bool cachedDisableSpaceSpawns;
-
-			if (configVersion.get() > cachedVersion) {
-				Locker guard(&mutex);
-				cachedDisableSpaceSpawns = getBool("Core3.Regions.DisableSpaceSpawns", false);
-				cachedVersion = configVersion.get();
-			}
-
-			return cachedDisableSpaceSpawns;
-		}
-
 		inline float getSpawnCheckRange() {
 			static uint32 cachedVersion = 0;
 			static float cachedSpawnRange;
@@ -789,19 +746,6 @@ namespace conf {
 			}
 
 			return cachedSpawnRange;
-		}
-
-		inline float getSpaceSpawnCheckRange() {
-			static uint32 cachedVersion = 0;
-			static float cachedSpaceSpawnRange;
-
-			if (configVersion.get() > cachedVersion) {
-				Locker guard(&mutex);
-				cachedSpaceSpawnRange = getFloat("Core3.Regions.spaceSpawnCheckRange", 1024.f);
-				cachedVersion = configVersion.get();
-			}
-
-			return cachedSpaceSpawnRange;
 		}
 
 		inline bool getLootDebugAttributes() {

@@ -34,7 +34,7 @@ gnarled_pubam_spiritmaster = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "pubam_tier_1", chance = 10000000}
+				{group = "ewok", chance = 10000000}
 			},
 			lootChance = 1620000
 		}

@@ -12,7 +12,7 @@
 #include "server/zone/objects/ship/ai/btspace/BehaviorSpace.h"
 #include "server/zone/objects/ship/ai/btspace/BehaviorTreeSlotSpace.h"
 
-#include "templates/params/ship/ShipFlag.h"
+#include "templates/params/ship/ShipFlags.h"
 
 // include all behaviors we want to register
 #include "server/zone/objects/ship/ai/btspace/TreeSocketSpace.h"
@@ -127,15 +127,9 @@ public:
 		lua->setGlobalInt("MOVESPACE",			BehaviorTreeSlotSpace::MOVESPACE);
 		lua->setGlobalInt("TARGETSPACE",		BehaviorTreeSlotSpace::TARGETSPACE);
 
-		// Ship Bitmasks in ShipFlag.h
+		// Ship Bitmasks in ShipFlags.h
 		lua->setGlobalInt("ESCORT",				ShipFlag::ESCORT);
 		lua->setGlobalInt("FOLLOW",				ShipFlag::FOLLOW);
-		lua->setGlobalInt("TURRETSHIP",			ShipFlag::TURRETSHIP);
-		lua->setGlobalInt("GUARD_PATROL",		ShipFlag::GUARD_PATROL);
-		lua->setGlobalInt("RANDOM_PATROL",		ShipFlag::RANDOM_PATROL);
-		lua->setGlobalInt("FIXED_PATROL",		ShipFlag::FIXED_PATROL);
-		lua->setGlobalInt("SQUADRON_PATROL",	ShipFlag::SQUADRON_PATROL);
-		lua->setGlobalInt("SQUADRON_FOLLOW",	ShipFlag::SQUADRON_FOLLOW);
 		lua->setGlobalInt("TEST",				ShipFlag::TEST);
 
 		lua->setGlobalInt("OBLIVIOUS",			ShipAiAgent::OBLIVIOUS);
@@ -151,7 +145,6 @@ public:
 
 		lua_register(lua->getLuaState(), "includeFile", includeFile);
 		lua_register(lua->getLuaState(), "addAiTemplate", addSpaceAiTemplate);
-
 		lua->runFile("scripts/ai_space/space_templates.lua");
 
 		putBitmask(lua, "bitmaskLookup");
@@ -188,17 +181,15 @@ public:
 		for (int mask = ShipFlag::LASTAIMASK; (mask = mask >> 1) >= 0;) {
 			if ((bitMask & mask) == mask && bitmaskMap.contains(mask)) {
 				auto treeMap = bitmaskMap.get((uint32)(mask));
-
-				if (treeMap.contains(treeID)) {
+				if (treeMap.contains(treeID))
 					return treeMap.get(treeID);
-				}
 			}
 
 			if (mask == 0)
 				break;
 		}
 
-		error() << "Failed to find Space Behavior for mask: " << bitMask << " and treeID: " << treeID;
+		SpaceAiMap::instance()->error() << "Failed to find Space Behavior for mask: " << bitMask << " and treeID: " << treeID;
 
 		return nullptr;
 	}
@@ -284,7 +275,6 @@ private:
 		_REGISTERSPACELEAF(CheckEvadeChance);
 		_REGISTERSPACELEAF(CheckRetreat);
 		_REGISTERSPACELEAF(CheckProspectLOS);
-		_REGISTERSPACELEAF(CheckWeapons);
 
 		// action behaviors
 		_REGISTERSPACELEAF(DummySpace);
@@ -300,8 +290,7 @@ private:
 		_REGISTERSPACELEAF(SetAlert);
 		_REGISTERSPACELEAF(SetDefenderFromProspect);
 		_REGISTERSPACELEAF(GetProspectFromThreatMap);
-		_REGISTERSPACELEAF(EngageSingleTarget);
-		_REGISTERSPACELEAF(EngageTurrets);
+		_REGISTERSPACELEAF(EngageTarget);
 		_REGISTERSPACELEAF(SetDisabledEngineSpeed);
 		_REGISTERSPACELEAF(Leash);
 		_REGISTERSPACELEAF(GetProspectFromDefenders);
@@ -309,7 +298,6 @@ private:
 
 	void putBitmask(Lua* lua, String key) {
 		LuaObject obj = lua->getGlobalObject(key);
-
 		if (!obj.isValidTable()) {
 			SpaceAiMap::instance()->error("Failed to load bitmask map: " + key);
 			return;
@@ -317,7 +305,6 @@ private:
 
 		for (int i = 1; i <= obj.getTableSize(); ++i) {
 			LuaObject entry = obj.getObjectAt(i);
-
 			if (!entry.isValidTable()) {
 				SpaceAiMap::instance()->error("Failed to load bitmask map at : " + String::valueOf(i));
 				continue;
@@ -325,7 +312,6 @@ private:
 
 			uint32 flag = entry.getIntAt(1);
 			LuaObject table = entry.getObjectAt(2);
-
 			if (!table.isValidTable()) {
 				SpaceAiMap::instance()->error("Failed to load bitmask map for flag: " + String::valueOf(flag));
 				continue;
@@ -333,35 +319,28 @@ private:
 
 			VectorMap<BehaviorTreeSlotSpace, Reference<BehaviorSpace*>> flagMap;
 			flagMap.setNullValue(NULL);
-
 			for (int j = 1; j <= table.getTableSize(); ++j) {
 				LuaObject tableEntry = table.getObjectAt(j);
-
 				if (!tableEntry.isValidTable()) {
 					SpaceAiMap::instance()->error("Invalid entry in table: " + String::valueOf(flag));
 					continue;
 				}
 
-				uint32 tableInt = tableEntry.getIntAt(1);
-
-				BehaviorTreeSlotSpace treeNum = static_cast<BehaviorTreeSlotSpace>(tableInt);
+				BehaviorTreeSlotSpace treeNum = static_cast<BehaviorTreeSlotSpace>(tableEntry.getIntAt(1));
 				String tempName = tableEntry.getStringAt(2);
-
 				tableEntry.pop();
 
 				flagMap.put(treeNum, SpaceAiMap::instance()->getTemplate(tempName));
 			}
 
-			if (DEBUG_MODE) {
-				info(true) << "Loaded bitmask: " << flag;
-			}
+			if (DEBUG_MODE)
+				info("Loaded bitmask: " + String::valueOf(flag), true);
 
 			table.pop();
 			entry.pop();
 
 			bitmaskMap.put(flag, flagMap);
 		}
-
 		obj.pop();
 	}
 

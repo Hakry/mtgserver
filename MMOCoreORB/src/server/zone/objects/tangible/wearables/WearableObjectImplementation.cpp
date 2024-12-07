@@ -110,69 +110,66 @@ void WearableObjectImplementation::generateSockets(CraftingValues* craftingValue
 }
 
 void WearableObjectImplementation::applyAttachment(CreatureObject* player, Attachment* attachment) {
-	if (!isASubChildOf(player)) {
+	if (!isASubChildOf(player))
 		return;
-	}
 
-	if (getRemainingSockets() < 1 && wearableSkillMods.size() > 5) {
-		return;
-	}
+	if (getRemainingSockets() > 0 && wearableSkillMods.size() < 6) {
+		Locker locker(player);
 
-	Locker locker(player);
-
-	if (isEquipped()) {
-		removeSkillModsFrom(player);
-	}
-
-	SortedVector<ModSortingHelper> sortedMods;
-	VectorMap<String, int>* skillModifiers = attachment->getSkillMods();
-
-	for (int i = 0; i < skillModifiers->size(); i++) {
-		auto key = skillModifiers->elementAt(i).getKey();
-		auto value = skillModifiers->elementAt(i).getValue();
-
-		sortedMods.put(ModSortingHelper(key, value));
-	}
-
-	// Select the next mod in the SEA, sorted high-to-low. If that skill mod is already on the
-	// wearable, with higher or equal value, don't apply and continue. Break once one mod
-	// is applied.
-	for (int i = 0; i < sortedMods.size(); i++) {
-		String modName = sortedMods.elementAt(i).getKey();
-		int modValue = sortedMods.elementAt(i).getValue();
-
-		int existingValue = -26;
-
-		if (wearableSkillMods.contains(modName)) {
-			existingValue = wearableSkillMods.get(modName);
+		if (isEquipped()) {
+			removeSkillModsFrom(player);
 		}
 
-		if (modValue > existingValue) {
-			wearableSkillMods.put(modName, modValue);
-			break;
+		HashTable<String, int>* mods = attachment->getSkillMods();
+		HashTableIterator<String, int> iterator = mods->iterator();
+
+		String statName;
+		int newValue;
+
+		SortedVector< ModSortingHelper > sortedMods;
+		for( int i = 0; i < mods->size(); i++){
+			iterator.getNextKeyAndValue(statName, newValue);
+			sortedMods.put( ModSortingHelper( statName, newValue));
 		}
-	}
 
-	usedSocketCount++;
-	addMagicBit(true);
-	Locker clocker(attachment, player);
-	TransactionLog trx(player, asSceneObject(), attachment, TrxCode::APPLYATTACHMENT);
+		// Select the next mod in the SEA, sorted high-to-low. If that skill mod is already on the
+		// wearable, with higher or equal value, don't apply and continue. Break once one mod
+		// is applied.
+		for (int i = 0; i < sortedMods.size(); i++ ) {
+			String modName = sortedMods.elementAt(i).getKey();
+			int modValue = sortedMods.elementAt(i).getValue();
 
-	if (trx.isVerbose()) {
-		// Force a synchronous export because the object will be deleted before we can export it!
-		trx.addRelatedObject(attachment, true);
-		trx.setExportRelatedObjects(true);
-		trx.exportRelated();
-	}
+			int existingValue = -26;
+			if (wearableSkillMods.contains(modName))
+				existingValue = wearableSkillMods.get(modName);
 
-	trx.addState("subjectSkillModMap", sortedMods);
-	trx.addState("dstSkillModMap", wearableSkillMods);
+			if (modValue > existingValue) {
+				wearableSkillMods.put( modName, modValue );
+				break;
+			}
+		}
 
-	attachment->destroyObjectFromWorld(true);
-	attachment->destroyObjectFromDatabase(true);
+		usedSocketCount++;
+		addMagicBit(true);
+		Locker clocker(attachment, player);
+		TransactionLog trx(player, asSceneObject(), attachment, TrxCode::APPLYATTACHMENT);
 
-	if (isEquipped()) {
-		applySkillModsTo(player);
+		if (trx.isVerbose()) {
+			// Force a synchronous export because the object will be deleted before we can export it!
+			trx.addRelatedObject(attachment, true);
+			trx.setExportRelatedObjects(true);
+			trx.exportRelated();
+		}
+
+		trx.addState("subjectSkillModMap", sortedMods);
+		trx.addState("dstSkillModMap", wearableSkillMods);
+
+		attachment->destroyObjectFromWorld(true);
+		attachment->destroyObjectFromDatabase(true);
+
+		if (isEquipped()) {
+			applySkillModsTo(player);
+		}
 	}
 }
 

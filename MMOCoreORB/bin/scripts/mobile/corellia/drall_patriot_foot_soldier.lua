@@ -34,7 +34,9 @@ drall_patriot_foot_soldier = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "drall_tier_1", chance = 10000000}
+				{group = "junk", chance = 7000000},
+				{group = "loot_kit_parts", chance = 2000000},
+				{group = "tailor_components", chance = 1000000}
 			}
 		}
 	},

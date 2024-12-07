@@ -74,16 +74,12 @@ void MapLocationEntry::setObject(SceneObject* obj) {
 
 	if (object->isVendor()) {
 		newName = newName.subString(8); // Removes the "Vendor: " prefix
-	// Shuttleports take on the name of nearest travel point
-	} else if (category->getIndex() == MapLocationType::SHUTTLEPORT) {
+	} else if (category->getIndex() == MapLocationType::SHUTTLEPORT) { // Shuttleports take on the name of nearest travel point
 		ManagedReference<PlanetManager*> planetManager = zone->getPlanetManager();
+		PlanetTravelPoint* ptp = planetManager->getNearestPlanetTravelPoint(object, 64.f);
 
-		if (planetManager != nullptr) {
-			PlanetTravelPoint* ptp = planetManager->getNearestPlanetTravelPoint(object, 64.f);
-
-			if (ptp != nullptr) {
-				newName = ptp->getPointName();
-			}
+		if (ptp != nullptr) {
+			newName = ptp->getPointName();
 		}
 	// Camp's Need to be registered by the owners name
 	} else if (object->isCampStructure()) {

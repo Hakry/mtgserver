@@ -35,14 +35,14 @@ public:
 			return;
 		}
 
-		ManagedReference<CreatureObject*> strongShuttle = shuttleObject.get();
+		ManagedReference<CreatureObject*> strongReference = shuttleObject.get();
 
-		if (strongShuttle == nullptr) {
-			error() << " Shuttle strongShuttle has a nullptr in Zone: " << zone->getZoneName();
+		if (strongReference == nullptr) {
+			error() << " Shuttle strongReference has a nullptr in Zone: " << zone->getZoneName();
 			return;
 		}
 
-		Locker lock(strongShuttle);
+		Locker _lock(strongReference);
 
 		ManagedReference<PlanetManager*> planetManager = zone->getPlanetManager();
 
@@ -51,29 +51,27 @@ public:
 			return;
 		}
 
-		ManagedReference<CityRegion*> cityRegion = strongShuttle->getCityRegion().get();
+		ManagedReference<CityRegion*> cityRegion = strongReference->getCityRegion().get();
 
-		// Player City
-		if ((cityRegion != nullptr) && !cityRegion->isClientRegion()) {
-			float x = strongShuttle->getWorldPositionX();
-			float y = strongShuttle->getWorldPositionY();
-			float z = strongShuttle->getWorldPositionZ();
+		if ((cityRegion != nullptr) && (cityRegion->getMayorID() != 0)) {
+			float x = strongReference->getWorldPositionX();
+			float y = strongReference->getWorldPositionY();
+			float z = strongReference->getWorldPositionZ();
 
 			Vector3 arrivalVector(x, y, z);
 
 			String zoneName = zone->getZoneName();
 
-			Locker clocker(cityRegion, strongShuttle);
-
-			cityRegion->setShuttleID(strongShuttle->getObjectID());
+			Locker clocker(cityRegion, strongReference);
+			cityRegion->setShuttleID(strongReference->getObjectID());
 			clocker.release();
 
-			PlanetTravelPoint* planetTravelPoint = new PlanetTravelPoint(zoneName, cityRegion->getCityRegionName(), arrivalVector, arrivalVector, strongShuttle, 6.f);
-
+			PlanetTravelPoint* planetTravelPoint = new PlanetTravelPoint(zoneName, cityRegion->getCityRegionName(), arrivalVector, arrivalVector, strongReference);
 			planetManager->addPlayerCityTravelPoint(planetTravelPoint);
-			planetManager->scheduleShuttle(strongShuttle, PlanetManager::SHUTTLEPORT);
+			planetManager->scheduleShuttle(strongReference, PlanetManager::SHUTTLEPORT);
+
 		} else {
-			Reference<PlanetTravelPoint*> travelPoint = planetManager->getNearestPlanetTravelPoint(strongShuttle, 128.f);
+			Reference<PlanetTravelPoint*> travelPoint = planetManager->getNearestPlanetTravelPoint(strongReference, 128.f);
 
 			if (travelPoint == nullptr) {
 				error() << " Planet Travel Point (travelPoint) has a nullptr in Zone: " << zone->getZoneName();
@@ -83,16 +81,16 @@ public:
 			auto oldShuttle = travelPoint->getShuttle();
 
 			if (oldShuttle == nullptr) {
-				travelPoint->setShuttle(strongShuttle);
+				travelPoint->setShuttle(strongReference);
 
 				if (travelPoint->isInterplanetary()) {
-					planetManager->scheduleShuttle(strongShuttle, PlanetManager::STARPORT);
+					planetManager->scheduleShuttle(strongReference, PlanetManager::STARPORT);
 				} else {
-					planetManager->scheduleShuttle(strongShuttle, PlanetManager::SHUTTLEPORT);
+					planetManager->scheduleShuttle(strongReference, PlanetManager::SHUTTLEPORT);
 				}
-			} else if (oldShuttle != strongShuttle) {
-				strongShuttle->destroyObjectFromWorld(true);
-				strongShuttle->destroyObjectFromDatabase(true);
+			} else if (oldShuttle != strongReference) {
+				strongReference->destroyObjectFromWorld(true);
+				strongReference->destroyObjectFromDatabase(true);
 			}
 		}
 	}

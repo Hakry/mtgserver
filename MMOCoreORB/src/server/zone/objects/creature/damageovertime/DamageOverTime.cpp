@@ -106,19 +106,9 @@ void DamageOverTime::activate() {
 }
 
 uint32 DamageOverTime::applyDot(CreatureObject* victim) {
-	if (victim == nullptr) {
-		return 0;
-	}
-
 #ifdef DEBUG_DOTS
 	info(true) << "applyDot called " << victim->getFirstName() << " ID: " << victim->getObjectID() << " Type: " << type;
 #endif
-
-	auto zoneServer = victim->getZoneServer();
-
-	if (zoneServer == nullptr) {
-		return 0;
-	}
 
 	if ((!victim->hasState(type) && type != CommandEffect::FORCECHOKE) || !nextTick.isPast()) {
 #ifdef DEBUG_DOTS
@@ -139,11 +129,10 @@ uint32 DamageOverTime::applyDot(CreatureObject* victim) {
 	nextTick.updateToCurrentTime();
 
 	uint32 power = 0;
-	ManagedReference<CreatureObject*> attacker = zoneServer->getObject(attackerID).castTo<CreatureObject*>();
+	ManagedReference<CreatureObject*> attacker = victim->getZoneServer()->getObject(attackerID).castTo<CreatureObject*>();
 
-	if (attacker == nullptr) {
+	if (attacker == nullptr)
 		attacker = victim;
-	}
 
 	int time = 0;
 
@@ -376,9 +365,8 @@ uint32 DamageOverTime::doPoisonTick(CreatureObject* victim, CreatureObject* atta
 
 uint32 DamageOverTime::doDiseaseTick(CreatureObject* victim, CreatureObject* attacker) {
 	// we need to allow dots to tick while incapped, but not do damage
-	if (victim->isIncapacitated() && !victim->isFeigningDeath()) {
+	if (victim->isIncapacitated() && victim->isFeigningDeath() == false)
 		return 0;
-	}
 
 	int absorptionMod = Math::max(0, Math::min(50, victim->getSkillMod("absorption_disease")));
 
@@ -398,34 +386,25 @@ uint32 DamageOverTime::doDiseaseTick(CreatureObject* victim, CreatureObject* att
 		Locker locker(victimRef);
 		Locker crossLocker(attackerRef, victimRef);
 
-		int damageInt = (int)damage;
-		int shockWounds = (int)(strength * 0.075f);
-
-#ifdef DEBUG_DOTS
-		info(true) << "Disease tick on Victim: " << victimRef->getDisplayedName() << " Attribute #" << attribute << " Damage: " << damageInt << " Shock Wounds: " << shockWounds;
-#endif // DEBUG_DOTS
-
-		if (damageInt > 0) {
+		if ((int)damage > 0) {
 			// need to do damage to account for wounds first, or it will possibly get
 			// applied twice
-			if (attribute % 3 == 0) {
+			if (attribute % 3 == 0)
 				victimRef->inflictDamage(attackerRef, attribute, damage, true, "dotDMG", true, false);
-			}
 
 			victimRef->addWounds(attribute, damage, true, false);
 		}
 
-		victimRef->addShockWounds(shockWounds);
+		victimRef->addShockWounds((int)(strength * 0.075f));
 
-		if (victimRef->hasAttackDelay()) {
+		if (victimRef->hasAttackDelay())
 			victimRef->removeAttackDelay();
-		}
 
 		victimRef->playEffect("clienteffect/dot_diseased.cef","");
 	}, "DiseaseTickLambda");
 
 #ifdef DEBUG_DOTS
-	info(true) << "doDiseaseTick  -- Attribute #" << attribute << " Damage: " << damage;
+	info(true) << "doDiseaseTick -- Pool: " << attribute << " Damage: " << damage;
 #endif
 
 	return damage;

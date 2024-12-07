@@ -36,7 +36,9 @@ naive_jinda_workling = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "jinda_tribe_tier_1", chance = 10000000}
+				{group = "ewok", chance = 9100000},
+				{group = "armor_attachments", chance = 450000},
+				{group = "clothing_attachments", chance = 450000}
 			},
 			lootChance = 1200000
 		}

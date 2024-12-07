@@ -34,7 +34,10 @@ archaic_jinda_ritualist = Creature:new {
 	lootGroups = {
 		{
 	        groups = {
-				{group = "jinda_tribe_tier_2", chance = 10000000}
+				{group = "ewok", chance = 8100000},
+				{group = "wearables_uncommon", chance = 1000000},
+				{group = "armor_attachments", chance = 450000},
+				{group = "clothing_attachments", chance = 450000}
 			},
 			lootChance = 1820000
 		}
@@ -45,7 +48,7 @@ archaic_jinda_ritualist = Creature:new {
 	primaryWeapon = "general_unarmed",
 	secondaryWeapon = "none",
 	conversationTemplate = "",
-
+	
 	-- primaryAttacks and secondaryAttacks should be separate skill groups specific to the weapon type listed in primaryWeapon and secondaryWeapon
 	-- Use merge() to merge groups in creatureskills.lua together. If a weapon is set to "none", set the attacks variable to empty brackets
 	primaryAttacks = brawlermaster,

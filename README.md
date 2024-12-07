@@ -91,7 +91,7 @@ See [linux/README.md](linux/README.md) for instructions.
 ## Linux Manual Build
 
 ### Dependencies
-  * Debian 12
+  * Debian 11
   * CMake 3.18.0+
   * BerkeleyDB 5.3
   * MariaDb Client and Server
@@ -99,21 +99,19 @@ See [linux/README.md](linux/README.md) for instructions.
   * pthreads
   * Lua 5.3 libraries
   * Zlib libraries
-  * clang18
+  * clang 16+
   * java runtime
-  * boost
-  * ninja-build
 
-#### Clang-18
+#### Latest Clang
 
-The easiest way to get the clang18 to build with is to use the script provided by the llvm repo:
+The easiest way to get the latest clang to build with is to use the script provided by the llvm repo:
 
 ```
 sudo -i
 apt-get install -y apt-transport-https ca-certificates git gnupg lsb-release moreutils software-properties-common wget
 wget -O /tmp/llvm.sh https://apt.llvm.org/llvm.sh
 chmod +x /tmp/llvm.sh
-/tmp/llvm.sh 18 all
+/tmp/llvm.sh all
 (set +x;cd /usr/bin;for i in ../lib/llvm-*/bin/*; do ln -sfv $i .; done)
 clang --version
 ld.lld --version
@@ -124,25 +122,24 @@ This will install the latest and symlink all the files to /usr/bin so CMake find
 
 ### Build
 
-  * Install dependencies (Debian 12)
+  * Install dependencies (Debian 11)
 
-        sudo apt install build-essential libmariadb-dev libmariadb-dev-compat liblua5.3-dev libdb5.3-dev libssl-dev cmake git default-jre libboost-all-dev gdb ninja-build
+        sudo apt install build-essential libmysqlclient-dev liblua5.3-dev libdb5.3-dev libssl-dev cmake git default-jre
 
   * Clone core3 repository somewhere  (~/workspace)
 
         mkdir -p ~/workspace
         cd ~/workspace
-        git clone https://review.swgemu.com/Core3
+        git clone http://review.swgemu.com/Core3
 
   * Build Core3
 
-        cd Core3/MMOCoreORB
+        cd MMOCoreORB
         make -j$(nproc)
 
-  * Import sql database into mariadb
+  * Import sql database
 
-        sudo apt-get install mariadb-server
-        Setup MariaDB User, database and import sql/swgemu.sql
+        mysql -h<MYSQLHOST> -u<MYSQLUSER> -p<MYSQLPASSWORD> < sql/swgemu.sql
 
 ### How to Run
 

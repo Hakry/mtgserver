@@ -10,7 +10,9 @@
 
 class EscapePodCommand : public CombatQueueCommand {
 public:
-	EscapePodCommand(const String& name, ZoneProcessServer* server) : CombatQueueCommand(name, server) {
+
+	EscapePodCommand(const String& name, ZoneProcessServer* server)
+		: CombatQueueCommand(name, server) {
 	}
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
@@ -23,11 +25,6 @@ public:
 		auto ship = root->asShipObject();
 
 		if (ship == nullptr) {
-			return GENERALERROR;
-		}
-
-		if (ship->isPobShip()) {
-			creature->sendSystemMessage("@space/space_interaction:use_escape_hatch");
 			return GENERALERROR;
 		}
 
@@ -47,6 +44,7 @@ public:
 
 		return SUCCESS;
 	}
+
 };
 
-#endif // ESCAPEPOD_H_
+#endif //ESCAPEPOD_H_

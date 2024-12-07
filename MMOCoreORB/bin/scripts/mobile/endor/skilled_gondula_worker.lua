@@ -41,7 +41,8 @@ skilled_gondula_worker = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "gondula_tribe_tier_1", chance = 10000000}
+				{group = "ewok", chance = 9000000},
+				{group = "wearables_uncommon", chance = 1000000},
 			},
 			lootChance = 1740000
 		}

@@ -23,7 +23,7 @@ public:
 
 		auto zone = shipO->getZone();
 
-		if (zone != nullptr) {
+		if (shipO != nullptr) {
 			setCustomTaskQueue(zone->getZoneName());
 		}
 	}
@@ -31,29 +31,24 @@ public:
 	void run() {
 		ManagedReference<ShipAiAgent*> strongShip = ship.get();
 
-		if (strongShip == nullptr) {
+		if (strongShip == nullptr)
 			return;
-		}
 
 		Locker locker(strongShip);
 
 		strongShip->clearDespawnEvent();
 
-		auto zone = strongShip->getZone();
+		Zone* zone = strongShip->getZone();
 
-		if (zone == nullptr) {
+		if (zone == nullptr)
 			return;
-		}
 
-		if (!strongShip->getDespawnOnNoPlayerInRange()) {
+		if (!strongShip->getDespawnOnNoPlayerInRange())
 			return;
-		}
 
 		if (strongShip->getNumberOfPlayersInRange() <= 0) {
 			strongShip->destroyObjectFromWorld(true);
-			strongShip->notifyDespawn();
-
-			// strongShip->info(true) << strongShip->getDisplayedName() << " removed from ShipAgent from world";
+			//strongShip->notifyDespawn(zone);
 		}
 	}
 };

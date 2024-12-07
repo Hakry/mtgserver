@@ -30,7 +30,7 @@
 #include "server/zone/managers/frs/FrsManager.h"
 
 #include "server/zone/QuadTree.h"
-#include "server/zone/Octree.h"
+#include "server/zone/OctTree.h"
 
 #include "engine/core/MetricsManager.h"
 #include "engine/service/ServiceThread.h"
@@ -124,7 +124,7 @@ void ServerCore::registerConsoleCommmands() {
 	});
 
 	addCommand("logOctree", [this](const String& arguments) -> CommandResult {
-		Octree::setLogging(!Octree::doLog());
+		OctTree::setLogging(!OctTree::doLog());
 
 		return SUCCESS;
 	});
@@ -891,6 +891,12 @@ void ServerCore::shutdown() {
 			}
 
 			info("All players disconnected", true);
+		}
+
+		auto frsManager = zoneServer->getFrsManager();
+
+		if (frsManager != nullptr) {
+			frsManager->cancelTasks();
 		}
 	}
 

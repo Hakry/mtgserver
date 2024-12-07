@@ -461,11 +461,6 @@ void LightsaberCrystalComponentImplementation::updateCraftingValues(CraftingValu
 		updateCrystal(31);
 	}
 
-	if (values->hasExperimentalAttribute("creatureLevel")) {
-		int level = values->getCurrentValue("creatureLevel");
-		setItemLevel(level);
-	}
-
 	generateCrystalStats();
 
 	ComponentImplementation::updateCraftingValues(values, firstUpdate);

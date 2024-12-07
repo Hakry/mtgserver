@@ -177,29 +177,23 @@ void GroundZoneComponent::updateZoneWithParent(SceneObject* sceneObject, SceneOb
 	ManagedReference<Zone*> zone = sceneObject->getZone();
 	ManagedReference<SceneObject*> oldParent = sceneObject->getParent().get();
 
-	if (oldParent != nullptr && !oldParent->isCellObject()) {
+	if (oldParent != nullptr && !oldParent->isCellObject())
 		return;
-	}
 
-	if (zone == nullptr) {
+	if (zone == nullptr)
 		zone = newParent->getRootParent()->getZone();
-	}
 
 	Locker _locker(zone);
 
-	 // Object is going from zone to new parent (cell, vehicle, mount, inventory, backpack etc)
-	if (oldParent == nullptr) {
+	if (oldParent == nullptr) { // we are in zone, enter cell
 		newParent->transferObject(sceneObject, -1, true);
 
 		zone->unlock();
-	// Object already has a parent, so is either transferring to a new one or moving within the current and checking for active areas update
-	} else {
-		// Object is going from one parent to another (cell to cell, backpack to inventory etc)
+	} else { // we are in cell already
 		if (oldParent != newParent) {
 			newParent->transferObject(sceneObject, -1, true);
 
 			zone->unlock();
-		// Object is not changing parents, unlock the zone and just check for active areas upate.
 		} else {
 			zone->unlock();
 
@@ -216,7 +210,7 @@ void GroundZoneComponent::updateZoneWithParent(SceneObject* sceneObject, SceneOb
 		}
 	}
 
-	// Notify COV that sceneObject has moved
+	//notify in range objects that i moved
 	try {
 		CloseObjectsVector* closeObjects = sceneObject->getCloseObjects();
 

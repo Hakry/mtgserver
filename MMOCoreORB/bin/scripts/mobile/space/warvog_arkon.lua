@@ -3,6 +3,8 @@ warvog_arkon = Creature:new {
 	socialGroup = "rebel",
 	faction = "rebel",
 	mobType = MOB_NPC,
+	planetMapCategory = "trainer",
+	planetMapSubCategory = "trainer_pilot_rebel",
 	level = 19,
 	chanceHit = 0.33,
 	damageMin = 180,
@@ -23,7 +25,7 @@ warvog_arkon = Creature:new {
 	ferocity = 0,
 	pvpBitmask = NONE,
 	creatureBitmask = NONE,
-	optionsBitmask = AIENABLED + JTLINTERESTING,
+	optionsBitmask = AIENABLED,
 	diet = HERBIVORE,
 
 	templates = {"object/mobile/space_rebel_tier4_warvog.iff"},

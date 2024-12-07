@@ -13,15 +13,11 @@
 
 
 bool SpaceZoneContainerComponent::insertActiveArea(Zone* newZone, ActiveArea* activeArea) const {
-	if (newZone == nullptr || activeArea == nullptr) {
+	if (newZone == nullptr || activeArea == nullptr)
 		return false;
-	}
 
-	// newZone->info(true) << "SpaceZoneContainerComponent::insertActiveArea -- ActiveArea: " << activeArea->getAreaName();
-
-	if (!activeArea->isDeployed()) {
+	if (!activeArea->isDeployed())
 		activeArea->deploy();
-	}
 
 	Zone* zone = activeArea->getZone();
 
@@ -43,11 +39,9 @@ bool SpaceZoneContainerComponent::insertActiveArea(Zone* newZone, ActiveArea* ac
 
 	// lets update area to the in range players
 	SortedVector<TreeEntry*> objects;
-	float range = activeArea->getRadius() + 1024;
+	float range = activeArea->getRadius() + 500;
 
 	newZone->getInRangeObjects(activeArea->getPositionX(), activeArea->getPositionZ(), activeArea->getPositionY(), range, &objects, false);
-
-	// newZone->info(true) << "SpaceZoneContainerComponent::insertActiveArea -- total in range objects: " << objects.size();
 
 	for (int i = 0; i < objects.size(); ++i) {
 		SceneObject* object = static_cast<SceneObject*>(objects.get(i));
@@ -72,7 +66,7 @@ bool SpaceZoneContainerComponent::insertActiveArea(Zone* newZone, ActiveArea* ac
 		}
 	}
 
-	// info(true) << newZone->getZoneName() << " -- Inserted Active area: " << activeArea->getAreaName() << " Location: " << activeArea->getAreaCenter().toString();
+	//info(true) << newZone->getZoneName() << " -- Inserted Active area: " << activeArea->getAreaName() << " Location: " << activeArea->getAreaCenter().toString();
 
 	newZone->addSceneObject(activeArea);
 
@@ -201,21 +195,16 @@ bool SpaceZoneContainerComponent::transferObject(SceneObject* sceneObject, Scene
 	if (notifyClient)
 		object->sendToOwner(true);
 
-	if (parent == nullptr) {
+	if (parent == nullptr)
 		object->initializePosition(object->getPositionX(), object->getPositionZ(), object->getPositionY());
-	}
 
-	// Inserts object into the Octree node for its given location
 	newSpaceZone->insert(object);
 
-	// Updates objects in range
-	float spaceZoneRange = object->getOutOfRangeDistance();
-
-	newSpaceZone->inRange(object, spaceZoneRange);
+	newSpaceZone->inRange(object, newSpaceZone->getZoneObjectRange());
 
 	TangibleObject* tanoObject = object->asTangibleObject();
 
-	if (tanoObject != nullptr) {
+	if (tanoObject != nullptr && tanoObject->isShipObject()) {
 		newSpaceZone->updateActiveAreas(tanoObject);
 	}
 
@@ -230,7 +219,7 @@ bool SpaceZoneContainerComponent::transferObject(SceneObject* sceneObject, Scene
 	return true;
 }
 
-bool SpaceZoneContainerComponent::removeObject(SceneObject* sceneObject, SceneObject* object, SceneObject* destination, bool notifyClient, bool nullifyParent) const {
+bool SpaceZoneContainerComponent::removeObject(SceneObject* sceneObject, SceneObject* object, SceneObject* destination, bool notifyClient) const {
 	SpaceZone* spaceZone = sceneObject->asSpaceZone();
 
 	if (object->isActiveArea())
@@ -267,10 +256,7 @@ bool SpaceZoneContainerComponent::removeObject(SceneObject* sceneObject, SceneOb
 #endif
 			SortedVector<ManagedReference<TreeEntry*> > closeSceneObjects;
 
-			// Updates objects in range
-			float spaceZoneRange = object->getOutOfRangeDistance();
-
-			spaceZone->getInRangeObjects(object->getPositionX(), object->getPositionZ(), object->getPositionY(), spaceZoneRange, &closeSceneObjects, false);
+			spaceZone->getInRangeObjects(object->getPositionX(), object->getPositionZ(), object->getPositionY(), spaceZone->getZoneObjectRange(), &closeSceneObjects, false);
 
 			for (int i = 0; i < closeSceneObjects.size(); ++i) {
 				TreeEntry* obj = closeSceneObjects.get(i);

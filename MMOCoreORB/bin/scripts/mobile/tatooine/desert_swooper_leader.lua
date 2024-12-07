@@ -32,7 +32,11 @@ desert_swooper_leader = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "swoop_tier_1", chance = 10000000}
+				{group = "junk", chance = 4000000},
+				{group = "tailor_components", chance = 1500000},
+				{group = "loot_kit_parts", chance = 1500000},
+				{group = "printer_parts", chance = 1000000},
+				{group = "desert_swooper_common", chance = 2000000}
 			}
 		}
 	},

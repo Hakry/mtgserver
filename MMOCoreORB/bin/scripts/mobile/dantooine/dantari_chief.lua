@@ -32,7 +32,11 @@ dantari_chief = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "dantari_raiders_tier_2", chance = 10000000}
+				{group = "junk", chance = 4000000},
+				{group = "loot_kit_parts", chance = 3000000},
+				{group = "armor_attachments", chance = 500000},
+				{group = "clothing_attachments", chance = 500000},
+				{group = "wearables_all", chance = 2000000}
 			}
 		}
 	},

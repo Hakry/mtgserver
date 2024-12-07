@@ -250,7 +250,7 @@ class InstallationObject extends StructureObject {
 	public native boolean isAttackableBy(CreatureObject object);
 
 	@preLocked
-	public abstract native void createChildObjects();
+	public native void createChildObjects();
 
 	@read
 	public native float getHitChance();

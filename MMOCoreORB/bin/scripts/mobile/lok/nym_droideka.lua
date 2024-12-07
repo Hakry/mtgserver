@@ -30,7 +30,13 @@ nym_droideka = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "nym_tier_2", chance = 10000000}
+				{group = "junk", chance = 4000000},
+				{group = "wearables_uncommon", chance = 2000000},
+				{group = "nyms_common", chance = 1000000},
+				{group = "nyms_rare", chance = 500000},
+				{group = "pistols", chance = 1000000},
+				{group = "carbines", chance = 1000000},
+				{group = "tailor_components", chance = 500000}
 			}
 		}
 	},

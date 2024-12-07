@@ -45,9 +45,6 @@ object_installation_turret_turret_dish_large = object_installation_turret_shared
 	pvpStatusBitmask = ATTACKABLE,
 	optionsBitmask = 0,
 	maxCondition = 300000,
-
-	gameObjectType = 4105,
-
 	groundZoneComponent = "TurretZoneComponent",
 	dataObjectComponent = "TurretDataComponent",
 	-- Damagetypes in WeaponObject

@@ -743,16 +743,14 @@ PlanetTravelPoint* PlanetManagerImplementation::getNearestPlanetTravelPoint(Scen
 
 PlanetTravelPoint* PlanetManagerImplementation::getNearestPlanetTravelPoint(const Vector3& position, float range) {
 	Reference<PlanetTravelPoint*> planetTravelPoint = nullptr;
-	float rangeSq = range * range;
 
 	for (int i = 0; i < planetTravelPointList->size(); ++i) {
 		const auto& ptp = planetTravelPointList->get(i);
 
-		float distanceSq = position.squaredDistanceTo2d(ptp->getDeparturePosition());
+		float dist = position.distanceTo(ptp->getDeparturePosition());
 
-		if (distanceSq < rangeSq) {
-			rangeSq = distanceSq;
-
+		if (dist < range) {
+			range = dist;
 			planetTravelPoint = ptp;
 		}
 	}
@@ -1048,38 +1046,44 @@ void PlanetManagerImplementation::readRegionObject(LuaObject& regionObject) {
 
 	region->setRegionFlags(type);
 
-	if (type & ActiveArea::SPAWNAREA) {
+	CreatureManager* creatureMan = zone->getCreatureManager();
+
+	if (spawnAreaRegion) {
 #ifdef DEBUG_REGIONS
 		info(true) << "Adding Spawn Area";
 #endif // DEBUG_REGIONS
 		ManagedReference<SpawnArea*> area = region.castTo<SpawnArea*>();
-		CreatureManager* creatureMan = zone->getCreatureManager();
 
 		if (creatureMan != nullptr && area != nullptr) {
-			area->setMaxSpawnLimit(regionObject.getIntAt(7));
+			if (type & ActiveArea::SPAWNAREA) {
+				area->setMaxSpawnLimit(regionObject.getIntAt(7));
+				LuaObject spawnGroups = regionObject.getObjectAt(6);
 
-			LuaObject spawnGroups = regionObject.getObjectAt(6);
+				if (spawnGroups.isValidTable()) {
+					Vector<uint32> groups;
 
-			if (spawnGroups.isValidTable()) {
-				Vector<uint32> groups;
+					for (int i = 1; i <= spawnGroups.getTableSize(); i++) {
+						uint32 groupHash = spawnGroups.getStringAt(i).hashCode();
 
-				for (int i = 1; i <= spawnGroups.getTableSize(); i++) {
-					uint32 groupHash = spawnGroups.getStringAt(i).hashCode();
+						// TODO: REMOVE
+						if (groupHash == STRING_HASHCODE("insert_spawnlist_here"))
+							continue;
 
 #ifdef DEBUG_REGIONS
-					info(true) << "Adding Spawn Group: #" << i << " Name: " << spawnGroups.getStringAt(i);
+						info(true) << "Adding Spawn Group: #" << i << " Name: " << spawnGroups.getStringAt(i);
 #endif // DEBUG_REGIONS
 
-					groups.add(spawnGroups.getStringAt(i).hashCode());
+						groups.add(spawnGroups.getStringAt(i).hashCode());
+					}
+
+					area->buildSpawnList(&groups);
 				}
 
-				area->buildSpawnList(&groups);
+				spawnGroups.pop();
+
+				// Add to Spawn Area Map
+				creatureMan->addSpawnAreaToMap(name.hashCode(), area);
 			}
-
-			spawnGroups.pop();
-
-			// Add to Spawn Area Map
-			creatureMan->addSpawnAreaToMap(name.hashCode(), area);
 		}
 	}
 

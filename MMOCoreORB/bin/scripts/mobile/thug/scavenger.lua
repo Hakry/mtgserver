@@ -39,7 +39,12 @@ scavenger = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "thug_tier_1", chance = 10000000}
+				{group = "junk", chance = 6500000},
+				{group = "rifles", chance = 700000},
+				{group = "melee_knife", chance = 700000},
+				{group = "pistols", chance = 700000},
+				{group = "carbines", chance = 700000},
+				{group = "stormtrooper_common", chance = 700000},
 			}
 		}
 	},
@@ -49,7 +54,7 @@ scavenger = Creature:new {
 	primaryWeapon = "pirate_weapons_medium",
 	secondaryWeapon = "unarmed",
 	reactionStf = "@npc_reaction/slang",
-
+	
 	-- primaryAttacks and secondaryAttacks should be separate skill groups specific to the weapon type listed in primaryWeapon and secondaryWeapon
 	-- Use merge() to merge groups in creatureskills.lua together. If a weapon is set to "none", set the attacks variable to empty brackets
 	primaryAttacks = merge(marksmannovice,brawlernovice),

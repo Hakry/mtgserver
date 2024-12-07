@@ -103,6 +103,8 @@ void ObjectManager::registerObjectTypes() {
 	objectFactory.registerObject<CampSiteActiveArea>(SceneObjectType::CAMPAREA);
 	objectFactory.registerObject<Region>(SceneObjectType::REGIONAREA);
 	objectFactory.registerObject<NavArea>(SceneObjectType::NAVMESHAREA);
+	objectFactory.registerObject<SpaceActiveArea>(SceneObjectType::SPACEACTIVEAREA);
+	objectFactory.registerObject<NebulaArea>(SceneObjectType::NEBULAAREA);
 	objectFactory.registerObject<StaticObject>(SceneObjectType::STATICOBJECT);
 	objectFactory.registerObject<Creature>(SceneObjectType::CREATURE);
 	objectFactory.registerObject<NonPlayerCreatureObject>(SceneObjectType::NPCCREATURE);
@@ -188,7 +190,6 @@ void ObjectManager::registerObjectTypes() {
 	objectFactory.registerObject<FactoryObject>(SceneObjectType::FACTORY);
 	objectFactory.registerObject<GeneratorObject>(SceneObjectType::GENERATOR);
 	objectFactory.registerObject<InstallationObject>(SceneObjectType::DESTRUCTIBLE);
-	objectFactory.registerObject<TurretObject>(SceneObjectType::TURRET);
 	objectFactory.registerObject<InstallationObject>(SceneObjectType::MINEFIELD);
 	objectFactory.registerObject<InstallationObject>(SceneObjectType::COVERTSCANNER);
 	objectFactory.registerObject<WeaponObject>(SceneObjectType::WEAPON);
@@ -207,6 +208,7 @@ void ObjectManager::registerObjectTypes() {
 	objectFactory.registerObject<MissionObject>(SceneObjectType::MISSIONOBJECT);
 	objectFactory.registerObject<Terminal>(SceneObjectType::TERMINAL);
 	objectFactory.registerObject<Terminal>(SceneObjectType::INSURANCE);
+	objectFactory.registerObject<SpaceshipTerminal>(SceneObjectType::SPACETERMINAL);
 	objectFactory.registerObject<Terminal>(SceneObjectType::SHIPPINGTERMINAL);
 	objectFactory.registerObject<Terminal>(SceneObjectType::INTERACTIVETERMINAL);
 	objectFactory.registerObject<MissionTerminal>(SceneObjectType::MISSIONTERMINAL);
@@ -327,8 +329,6 @@ void ObjectManager::registerObjectTypes() {
 	objectFactory.registerObject<PowerupObject>(SceneObjectType::HEAVYWEAPONPOWERUP);
 	objectFactory.registerObject<PowerupObject>(SceneObjectType::MINEPOWERUP);
 	objectFactory.registerObject<PowerupObject>(SceneObjectType::SPECIALHEAVYWEAPONPOWERUP);
-
-	// JTL Related
 	objectFactory.registerObject<ShipComponent>(SceneObjectType::SHIPATTACHMENT);
 	objectFactory.registerObject<ShipReactorComponent>(SceneObjectType::SHIPREACTOR);
 	objectFactory.registerObject<ShipEngineComponent>(SceneObjectType::SHIPENGINE);
@@ -337,36 +337,22 @@ void ObjectManager::registerObjectTypes() {
 	objectFactory.registerObject<ShipWeaponComponent>(SceneObjectType::SHIPWEAPON);
 	objectFactory.registerObject<ShipCapacitorComponent>(SceneObjectType::SHIPWEAPONCAPACITOR);
 	objectFactory.registerObject<ShipBoosterComponent>(SceneObjectType::SHIPBOOSTER);
-	objectFactory.registerObject<ShipDroidInterfaceComponent>(SceneObjectType::SHIPDRIODINTERFACE);
+	objectFactory.registerObject<Component>(SceneObjectType::SHIPDRIODINTERFACE);
 	objectFactory.registerObject<ShipChassisComponent>(SceneObjectType::SHIPCHASSIS);
-	objectFactory.registerObject<ShipComponent>(SceneObjectType::SHIPMISSILE);
-	objectFactory.registerObject<ShipComponent>(SceneObjectType::SHIPCOUNTERMEASURE);
+	objectFactory.registerObject<Component>(SceneObjectType::SHIPMISSILE);
+	objectFactory.registerObject<Component>(SceneObjectType::SHIPCOUNTERMEASURE);
 	objectFactory.registerObject<ShipWeaponComponent>(SceneObjectType::SHIPWEAPONLAUNCHER);
 	objectFactory.registerObject<ShipWeaponComponent>(SceneObjectType::SHIPCOUNTERMEASURELAUNCHER);
-	objectFactory.registerObject<SpaceObject>(SceneObjectType::ASTEROID);
 	objectFactory.registerObject<TangibleObject>(SceneObjectType::PILOTCHAIR);
 	objectFactory.registerObject<TangibleObject>(SceneObjectType::OPERATIONSCHAIR);
 	objectFactory.registerObject<TangibleObject>(SceneObjectType::TURRETACCESSLADDER);
 	objectFactory.registerObject<TangibleObject>(SceneObjectType::SHIPCONTAINER);
 	objectFactory.registerObject<FactoryCrate>(SceneObjectType::FACTORYCRATE);
 	objectFactory.registerObject<TangibleObject>(SceneObjectType::CRYSTAL);
-	objectFactory.registerObject<ShipComponentRepairKit>(SceneObjectType::SHIPCOMPONENTREPAIRITEM);
-	objectFactory.registerObject<ShipInteriorComponent>(SceneObjectType::SHIPINTERIORCOMPONENT);
-	objectFactory.registerObject<ShipPlasmaConduit>(SceneObjectType::SHIPPLASMACONDUIT);
-
-
-	objectFactory.registerObject<SpaceActiveArea>(SceneObjectType::SPACEACTIVEAREA);
-	objectFactory.registerObject<NebulaArea>(SceneObjectType::NEBULAAREA);
-	objectFactory.registerObject<SpaceRegion>(SceneObjectType::SPACEREGIONAREA);
-	objectFactory.registerObject<SpaceSpawnArea>(SceneObjectType::SPACESPAWNAREA);
-	objectFactory.registerObject<SpaceSpawner>(SceneObjectType::SPACESPAWNER);
-	objectFactory.registerObject<CreditChipObject>(SceneObjectType::CREDITCHIP);
-
-	objectFactory.registerObject<SpaceshipTerminal>(SceneObjectType::SPACETERMINAL);
 	objectFactory.registerObject<ShipObject>(SceneObjectType::SHIP);
 	objectFactory.registerObject<FighterShipObject>(SceneObjectType::SHIPFIGHTER);
 	objectFactory.registerObject<ShipObject>(SceneObjectType::SHIPCAPITAL);
-	objectFactory.registerObject<SpaceObject>(SceneObjectType::SPACEOBJECT);
+	objectFactory.registerObject<TangibleObject>(SceneObjectType::SPACEOBJECT);
 	objectFactory.registerObject<ShipObject>(SceneObjectType::SHIPTRANSPORT);
 	objectFactory.registerObject<PobShipObject>(SceneObjectType::SHIPPOB);
 	objectFactory.registerObject<MultiPassengerShipObject>(SceneObjectType::SHIPMULTIPASSENGER);
@@ -490,7 +476,7 @@ SceneObject* ObjectManager::loadObjectFromTemplate(uint32 objectCRC) {
 		SharedObjectTemplate* templateData = templateManager->getTemplate(objectCRC);
 
 		if (templateData == nullptr) {
-			error() << "Failed to create object with unknown CRC: 0x" << hex << (int)objectCRC;
+			error() << "trying to create object with unknown objectcrc 0x" << hex << (int)objectCRC;
 
 			return nullptr;
 		}

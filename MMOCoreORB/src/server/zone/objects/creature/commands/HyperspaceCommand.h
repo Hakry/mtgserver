@@ -5,14 +5,16 @@
 #ifndef HYPERSPACE_H_
 #define HYPERSPACE_H_
 
-#include "QueueCommand.h"
+#include "CombatQueueCommand.h"
 #include "server/zone/managers/ship/ShipManager.h"
 #include "server/zone/packets/object/OrientForHyperspace.h"
 #include "server/zone/objects/ship/events/HyperspaceToLocationTask.h"
 
-class HyperspaceCommand : public QueueCommand {
+class HyperspaceCommand : public CombatQueueCommand {
 public:
-	HyperspaceCommand(const String& name, ZoneProcessServer* server) : QueueCommand(name, server) {
+
+	HyperspaceCommand(const String& name, ZoneProcessServer* server)
+		: CombatQueueCommand(name, server) {
 	}
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {

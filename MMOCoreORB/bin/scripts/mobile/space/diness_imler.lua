@@ -3,6 +3,8 @@ diness_imler = Creature:new {
 	socialGroup = "townsperson",
 	faction = "townsperson",
 	mobType = MOB_NPC,
+	planetMapCategory = "trainer",
+	planetMapSubCategory = "trainer_pilot_privateer",
 	level = 100,
 	chanceHit = 1,
 	damageMin = 645,
@@ -23,7 +25,7 @@ diness_imler = Creature:new {
 	ferocity = 0,
 	pvpBitmask = NONE,
 	creatureBitmask = PACK,
-	optionsBitmask = AIENABLED + JTLINTERESTING,
+	optionsBitmask = AIENABLED,
 	diet = HERBIVORE,
 
 	templates = {"object/mobile/space_privateer_tier4_naboo_diness.iff"},

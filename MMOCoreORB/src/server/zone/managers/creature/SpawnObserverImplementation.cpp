@@ -7,34 +7,26 @@
 void SpawnObserverImplementation::despawnSpawns() {
 	Vector<ManagedReference<AiAgent* > > agents;
 
-	for (int i = spawnedCreatures.size() - 1; i >= 0; --i) {
+	for (int i = 0; i < spawnedCreatures.size(); ++i) {
 		ManagedReference<CreatureObject*> creature = spawnedCreatures.get(i);
 
-		spawnedCreatures.remove(i);
+		if (creature != nullptr && creature->isAiAgent()) {
+			AiAgent* agent = cast<AiAgent*>(creature.get());
 
-		if (creature == nullptr) {
-			continue;
+			if (agent == nullptr || agent->isPet() || agents.contains(agent))
+				continue;
+
+			agents.add(agent);
 		}
-
-		auto agent = cast<AiAgent*>(creature.get());
-
-		if (agent == nullptr || agent->isPet()) {
-			continue;
-		}
-
-		agents.add(agent);
 	}
 
-	// info(true) << "SpawnObserverImplementation::despawnSpawns() -- LAIR IS DESTROYED! - Setting " << agents.size() << " agents to despawn!";
+	spawnedCreatures.removeAll();
 
 	for (int i = agents.size() - 1; i >= 0; --i) {
-		auto agent = agents.get(i);
-
-		// Remove it from the list
-		agents.remove(i);
+		Reference<AiAgent*> agent = agents.get(i);
 
 		if (agent != nullptr) {
-			Core::getTaskManager()->executeTask([agent]() {
+			Core::getTaskManager()->executeTask([agent] () {
 				if (agent == nullptr)
 					return;
 
@@ -53,5 +45,7 @@ void SpawnObserverImplementation::despawnSpawns() {
 				agent->setDespawnOnNoPlayerInRange(true);
 			}, "DespawnSpawnsLambda");
 		}
+
+		agents.remove(i);
 	}
 }

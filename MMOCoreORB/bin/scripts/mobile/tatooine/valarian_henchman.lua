@@ -32,7 +32,12 @@ valarian_henchman = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "valarian_tier_1", chance = 10000000}
+				{group = "junk", chance = 2000000},
+				{group = "wearables_common", chance = 2000000},
+				{group = "tailor_components", chance = 1000000},
+				{group = "loot_kit_parts", chance = 2000000},
+				{group = "printer_parts", chance = 1500000},
+				{group = "valarian_common", chance = 1500000}
 			}
 		}
 	},
@@ -43,7 +48,7 @@ valarian_henchman = Creature:new {
 	secondaryWeapon = "unarmed",
 	conversationTemplate = "",
 	reactionStf = "@npc_reaction/slang",
-
+	
 	-- primaryAttacks and secondaryAttacks should be separate skill groups specific to the weapon type listed in primaryWeapon and secondaryWeapon
 	-- Use merge() to merge groups in creatureskills.lua together. If a weapon is set to "none", set the attacks variable to empty brackets
 	primaryAttacks = merge(brawlernovice,marksmannovice),

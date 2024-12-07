@@ -120,10 +120,13 @@ public:
 			return;
 		}
 
-		uint32 slot = Components::WEAPON_START + weaponIndex;
-		uint32 crc = ship->getShipComponentMap()->get(slot);
+		auto component = ship->getComponentObject(ShipObject::WEAPON_COMPONENT_START + weaponIndex);
+		if (component == nullptr) {
+			return;
+		}
 
-		if (crc == 0 || !ship->isComponentFunctional(slot)) {
+		auto weapon = dynamic_cast<ShipWeaponComponent*>(component);
+		if (weapon == nullptr) {
 			return;
 		}
 
@@ -132,45 +135,37 @@ public:
 			return;
 		}
 
-		auto data = shipManager->getProjectileData(crc);
+		auto data = shipManager->getProjectileData(component->getComponentDataName().hashCode());
 		if (data == nullptr) {
 			return;
 		}
 
-		Locker lock(pilot);
-		Locker cross(ship, pilot);
-
 		pilot->setSyncStamp(sequence);
 
-		float energyPerShot = ship->getEnergyPerShotMap()->get(slot);
-
-		if (energyPerShot > 0.f) {
-			float energyEfficiency = Math::clamp(0.1f, ship->getComponentEnergyEfficiencyMap()->get(slot), 10.f);
-			float actualEnergyCost = energyPerShot / energyEfficiency;
-			float capacitorEnergy = ship->getCapacitorEnergy();
-
-			if (capacitorEnergy < actualEnergyCost) {
-				return;
-			}
-
-			ship->setCapacitorEnergy(capacitorEnergy - actualEnergyCost, true);
-		}
-
 		if (data->isCountermeasure()) {
-			launchCountermeasure(ship, pilot, data);
+			launchCountermeasure(ship, pilot, weapon, data);
 		} else if (data->isMissile()) {
-			launchMissile(ship, pilot, data);
+			launchMissile(ship, pilot, weapon, data);
 		} else {
-			auto projectile = new ShipProjectile(ship, weaponIndex, projectileType, componentIndex, position, direction, data->getSpeed(), data->getRange(), 1.f, System::getMiliTime());
-			projectile->readProjectileData(data);
+			float currentEnergy = ship->getCapacitorEnergy();
+			float cost = weapon->getEnergyPerShot();
 
-			SpaceCombatManager::instance()->addProjectile(ship, projectile, pilot);
+			if (currentEnergy >= cost) {
+				Locker lock(pilot);
+				Locker cross(ship, pilot);
+
+				ship->setCapacitorEnergy(currentEnergy - cost, true);
+
+				auto projectile = new ShipProjectile(ship, weaponIndex, projectileType, componentIndex, position, direction, data->getSpeed(), data->getRange(), 1.f, System::getMiliTime());
+				projectile->readProjectileData(data);
+
+				SpaceCombatManager::instance()->addProjectile(ship, projectile);
+			}
 		}
 	}
 
-	void launchCountermeasure(ShipObject* ship, CreatureObject* pilot, const ShipProjectileData* data) const {
+	void launchCountermeasure(ShipObject* ship, CreatureObject* pilot, ShipWeaponComponent* weapon, const ShipProjectileData* data) {
 		auto shipManager = ShipManager::instance();
-
 		if (shipManager == nullptr) {
 			return;
 		}
@@ -179,35 +174,34 @@ public:
 		int ammoType = ship->getAmmoClassMap()->get(slot);
 
 		int currentAmmo = ship->getCurrentAmmoMap()->get(slot);
-
 		if (currentAmmo < 1) {
 			return;
 		}
 
 		auto counterData = shipManager->getCountermeasureData(ammoType);
-
 		if (counterData == nullptr) {
 			return;
 		}
 
-		auto deltaVector = ship->getDeltaVector();
+		Locker lock(pilot);
+		Locker cross(ship, pilot);
 
+		auto deltaVector = ship->getDeltaVector();
 		if (deltaVector == nullptr) {
 			return;
 		}
 
 		ship->setCurrentAmmo(slot, currentAmmo - 1, nullptr, DeltaMapCommands::SET, deltaVector);
-		deltaVector->sendMessages(ship);
+		deltaVector->sendMessages(ship, ship->getPilot());
 
 		auto counter = new ShipCountermeasure(ship, weaponIndex, projectileType, componentIndex, position, direction, data->getSpeed(), data->getRange(), 1.f, System::getMiliTime());
-
 		counter->readProjectileData(data);
 		counter->readCountermeasureData(counterData);
 
 		SpaceCombatManager::instance()->addCountermeasure(ship, counter);
 	}
 
-	void launchMissile(ShipObject* ship, CreatureObject* pilot, const ShipProjectileData* data) const {
+	void launchMissile(ShipObject* ship, CreatureObject* pilot, ShipWeaponComponent* weapon, const ShipProjectileData* data) {
 		auto targetID = pilot->getTargetID();
 		if (targetID == 0) {
 			return;
@@ -246,13 +240,16 @@ public:
 			return;
 		}
 
+		Locker lock(pilot);
+		Locker cross(ship, pilot);
+
 		auto deltaVector = ship->getDeltaVector();
 		if (deltaVector == nullptr) {
 			return;
 		}
 
 		ship->setCurrentAmmo(weaponSlot, currentAmmo - 1, nullptr, DeltaMapCommands::SET, deltaVector);
-		deltaVector->sendMessages(ship);
+		deltaVector->sendMessages(ship, ship->getPilot());
 
 		auto missile = new ShipMissile(ship, weaponIndex, projectileType, componentIndex, position, direction, data->getSpeed(), data->getRange(), 1.f, System::getMiliTime());
 		missile->readProjectileData(data);

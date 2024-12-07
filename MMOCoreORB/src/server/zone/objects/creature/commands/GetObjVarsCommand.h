@@ -16,15 +16,13 @@ public:
 	}
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
-		if (!creature->isPlayerCreature()) {
+		if (!creature->isPlayerCreature())
 			return GENERALERROR;
-		}
 
-		auto ghost = creature->getPlayerObject();
+		PlayerObject* ghost = creature->getPlayerObject();
 
-		if (ghost == nullptr) {
+		if (ghost == nullptr)
 			return GENERALERROR;
-		}
 
 		uint64 objectID = 0;
 		UnicodeTokenizer tokenizer(arguments);
@@ -46,277 +44,183 @@ public:
 			creature->sendSystemMessage("You need to target an object or specify an object id: /getobjvars <objectID> ");
 		}
 
-		auto zoneServer = server->getZoneServer();
-
-		if (zoneServer == nullptr) {
-			return GENERALERROR;
-		}
-
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(objectID, false);
 
 		if (object == nullptr) {
 			creature->sendSystemMessage("ERROR GETTIGN OBJECT - nullptr " + String::valueOf(objectID));
-			return INVALIDTARGET;
-		}
+		} else {
+			String nameString = object->getObjectNameStringIdName();
+			String strDescription = object->getDetailedDescription();
+			bool bMarkedForDelete = object->_isMarkedForDeletion();
 
-		ManagedReference<SuiMessageBox*> box = new SuiMessageBox(creature, SuiWindowType::NONE);
+			bool bIsUpdated = object->_isUpdated();
+			int rCount = object.get()->getReferenceCount();
+			uint64 parentID = object->getParentID();
+			StringBuffer msg;
+			msg << endl << "OBJECTID: " << String::valueOf(objectID) << endl;
+			msg << "OBJECTTYPE: " << String::valueOf(object->getGameObjectType()) << endl;
 
-		if (box == nullptr) {
-			return GENERALERROR;
-		}
+			if (object->isCreatureObject()) {
+				msg << "Creature First Name: " << object.castTo<CreatureObject*>()->getFirstName() << endl;
+			}
 
-		/*
-		*	General Object Information
-		*/
+			msg << "Object Name String: " << nameString << endl;
+			msg << "_className: " << object->_getClassName() << endl;
+			msg << "Marked for deletion: " << String::valueOf(bMarkedForDelete) << endl;
+			msg << "IsUpdated: " << String::valueOf(bIsUpdated) << endl;
+			msg << "REFERENCE COUNT " << String::valueOf(rCount) << endl;
+			msg << "Path: " << object->getObjectTemplate()->getFullTemplateString() << endl;
+			msg << "Children: " << String::valueOf(object->getChildObjects()->size()) << endl;
+			msg << "PARENT OBJECTID: " << String::valueOf(parentID) << endl;
 
-		String nameString = object->getObjectNameStringIdName();
-		String strDescription = object->getDetailedDescription();
-		bool bMarkedForDelete = object->_isMarkedForDeletion();
+			if (object->isCreatureObject()) {
+				CreatureObject* creoObject = object->asCreatureObject();
 
-		bool bIsUpdated = object->_isUpdated();
-		int rCount = object.get()->getReferenceCount();
-		uint64 parentID = object->getParentID();
+				if (creoObject != nullptr) {
+					String aiEnabled = (creoObject->getOptionsBitmask() & OptionBitmask::AIENABLED ? "True" : "False");
+					msg << "AI Enabled: " << aiEnabled << endl;
+					msg << "PvP Status Bitmask: " << creoObject->getPvpStatusBitmask() << endl;
+					msg << "Options Bitmask: " << creoObject->getOptionsBitmask() << endl;
 
-		uint32 covSize = 0;
-		auto closeObjectsVector = object->getCloseObjects();
+					if (object->isAiAgent()) {
+						AiAgent* objectAgent = object->asAiAgent();
 
-		if (closeObjectsVector != nullptr) {
-			covSize = closeObjectsVector->size();
-		}
+						if (objectAgent != nullptr) {
+							msg << "Creature Bitmask: " << objectAgent->getCreatureBitmask() << endl;
+							msg << "Creature Movement State: " << objectAgent->getMovementState() << endl;
 
-		StringBuffer msg;
-		msg << endl << "General Object Information:" << endl << endl <<
-		"Object ID: " << objectID << endl << endl <<
-		"Parent ID: " << parentID << endl <<
-		"Child Objects Size: " << object->getChildObjects()->size() << endl <<
-		"Close Objects Vector COV Size: " << covSize << endl <<
+							ManagedReference<SceneObject*> followCopy = objectAgent->getFollowObject();
+							StringBuffer hasFollow;
 
-		endl << // Spacer
-
-		"Object Type: " << object->getGameObjectType() << endl <<
-		"Object Name String: " << nameString << endl <<
-		"_className: " << object->_getClassName() << endl <<
-		"Template Path: " << object->getObjectTemplate()->getFullTemplateString() << endl <<
-
-		endl << // Spacer
-
-		"Reference Count: " << rCount << endl <<
-		"Marked for deletion: " << bMarkedForDelete << endl <<
-		"IsUpdated: " << bIsUpdated << endl << endl <<
-		"TreeNode is null: " << (object->getNode() == nullptr ? "true" : "false") << endl;
-
-
-		if (object->isCreatureObject()) {
-			auto creoObject = object->asCreatureObject();
-
-			if (creoObject != nullptr) {
-				/*
-				*	CreatureObject Information
-				*/
-
-				msg << endl << "Creature Object Information:" << endl << endl <<
-				"Displayed Name: " << creoObject->getDisplayedName() << endl <<
-				"PvP Status Bitmask: " << creoObject->getPvpStatusBitmask() << endl <<
-				"Options Bitmask: " << creoObject->getOptionsBitmask() << endl;
-
- 				if (creoObject->isPlayerCreature()) {
-					auto playerManager = server->getPlayerManager();
-
-					if (playerManager != nullptr) {
-						int playerLevel = playerManager->calculatePlayerLevel(creoObject);
-
-						msg << "Player Level: " << playerLevel << endl;
-					}
-				}
-
-				if (creoObject->isGrouped()) {
-					GroupObject* group = creoObject->getGroup();
-
-					if (group != nullptr) {
-						msg << "Group Level: " << group->getGroupLevel() << endl;
-					}
-				}
-
-				msg << endl;
-
-				/*
-				*	AiAgentObject Information
-				*/
-				if (creoObject->isAiAgent()) {
-					auto objectAgent = creoObject->asAiAgent();
-
-					if (objectAgent != nullptr) {
-						msg << endl << "AiAgent Object Information:" << endl << endl;
-
-						String aiEnabled = ((objectAgent->getOptionsBitmask() & OptionBitmask::AIENABLED) ? "True" : "False");
-						msg << "AI Enabled: " << aiEnabled << endl;
-
-						msg << "Creature Bitmask: " << objectAgent->getCreatureBitmask() << endl;
-						msg << "Creature Movement State: " << objectAgent->getMovementState() << endl;
-
-						ManagedReference<SceneObject*> followCopy = objectAgent->getFollowObject();
-						StringBuffer hasFollow;
-
-						if (followCopy != nullptr) {
-							hasFollow << "True - " << " OID: " << followCopy->getObjectID();
-						} else {
-							hasFollow << "False";
-						}
-
-						msg << "Has Follow Object: " << hasFollow.toString() << endl;
-						msg << "Current total Patrol Points: " << objectAgent->getPatrolPointSize() << endl;
-						msg << "In Navmesh: " << (objectAgent->isInNavMesh() ? "True" : "False") << endl;
-
-						msg << "\n\n";
-
-						msg << "Current Weapon: ";
-
-						if (objectAgent->getCurrentWeapon() != nullptr) {
-							msg << objectAgent->getCurrentWeapon()->getObjectTemplate()->getTemplateFileName() << " ID: " << objectAgent->getCurrentWeapon()->getObjectID() << endl;
-						} else {
-							msg << "nullptr" << endl;
-						}
-
-						msg << "Default Weapon: ";
-
-						if (objectAgent->getDefaultWeapon() != nullptr) {
-							msg << objectAgent->getDefaultWeapon()->getObjectTemplate()->getTemplateFileName() << " ID: " << objectAgent->getDefaultWeapon()->getObjectID() << endl;
-						} else {
-							msg << "nullptr" << endl;
-						}
-
-						msg << "Primary Weapon: ";
-
-						if (objectAgent->getPrimaryWeapon() != nullptr) {
-							msg << objectAgent->getPrimaryWeapon()->getObjectTemplate()->getTemplateFileName() << " ID: " << objectAgent->getPrimaryWeapon()->getObjectID() << endl;
-						} else {
-							msg << "nullptr" << endl;
-						}
-
-						msg << "Secondary Weapon: ";
-
-						if (objectAgent->getSecondaryWeapon() != nullptr) {
-							msg << objectAgent->getSecondaryWeapon()->getObjectTemplate()->getTemplateFileName() << " ID: " << objectAgent->getSecondaryWeapon()->getObjectID() << endl;
-						} else {
-							msg << "nullptr" << endl;
-						}
-
-						msg << endl; // Spacing
-
-						// Inventory Contents
-						auto inventory = objectAgent->getInventory();
-
-						if (inventory != nullptr) {
-							msg << "Agent Inventory size: " << inventory->getContainerObjectsSize() << endl;
-
-							for (int i = 0; i < inventory->getContainerObjectsSize(); ++i) {
-								auto invObject = inventory->getContainerObject(i);
-
-								if (invObject != nullptr) {
-									msg << "Inventory - #" << i << " Item: " << invObject->getObjectNameStringIdName() << " -- " << invObject->getObjectTemplate()->getTemplateFileName() << " ID: " << invObject->getObjectID() << endl;
-								}
+							if (followCopy != nullptr) {
+								hasFollow << "True - " << " OID: " << followCopy->getObjectID();
+							} else {
+								hasFollow << "False";
 							}
+
+							msg << "Has Follow Object: " << hasFollow.toString() << endl;
+							msg << "Current total Patrol Points: " << objectAgent->getPatrolPointSize() << endl;
+							msg << "In Navmesh: " << (objectAgent->isInNavMesh() ? "True" : "False") << endl;
+
+							msg << "Current Weapon: " << (objectAgent->getCurrentWeapon() != nullptr ? "True" : "False") << endl;
+							msg << "Default Weapon: " << (objectAgent->getDefaultWeapon() != nullptr ? "True" : "False") << endl;
+							msg << "Primary Weapon: " << (objectAgent->getPrimaryWeapon() != nullptr ? "True" : "False") << endl;
+							msg << "Secondary Weapon: " << (objectAgent->getSecondaryWeapon() != nullptr ? "True" : "False") << endl;
+
+							// Home Object - Lairs
+							uint64 homeID = 0;
+							String homeName = "none";
+							ManagedReference<SceneObject*> homeLair = objectAgent->getHomeObject().get();
+
+							if (homeLair != nullptr) {
+								homeID = homeLair->getObjectID();
+								homeName = homeLair->getObjectNameStringIdName();
+							}
+
+							msg << "Home Object: " << homeName << " ID: " << homeID << endl;
 						}
+					} else if (creoObject->isPlayerCreature()) {
+						auto playerManager = server->getPlayerManager();
 
-						msg << endl; // Spacing
+						if (playerManager != nullptr) {
+							int playerLevel = playerManager->calculatePlayerLevel(creoObject);
 
-						// Home Object - Lairs
-						uint64 homeID = 0;
-						String homeName = "none";
-						ManagedReference<SceneObject*> homeLair = objectAgent->getHomeObject().get();
-
-						if (homeLair != nullptr) {
-							homeID = homeLair->getObjectID();
-							homeName = homeLair->getObjectNameStringIdName();
+							msg << "Player Level: " << playerLevel << endl;
 						}
+					}
 
-						msg << "Home Object: " << homeName << " ID: " << homeID << endl;
+					if (creoObject->isGrouped()) {
+						GroupObject* group = creoObject->getGroup();
 
-						msg << endl; // Spacing
+						if (group != nullptr)
+							msg << "Group Level: " << group->getGroupLevel() << endl;
+					}
+
+					SortedVector<ManagedReference<ActiveArea*>>* areas = creoObject->getActiveAreas();
+
+					if (areas != nullptr) {
+						for (int i = 0; i < areas->size(); i++) {
+							ActiveArea* area = areas->get(i);
+
+							if (area == nullptr)
+								continue;
+
+							msg << "Area #" << i << " -- " << area->getAreaName() << endl;
+						}
 					}
 				}
+			} else if (object->isShipObject()) {
+				ShipObject* ship = object->asShipObject();
 
-				// List the active areas
-				SortedVector<ManagedReference<ActiveArea*>>* areas = creoObject->getActiveAreas();
+				if (ship != nullptr) {
+					String aiEnabled = (ship->getOptionsBitmask() & OptionBitmask::AIENABLED ? "True" : "False");
+					msg << "AI Enabled: " << aiEnabled << endl;
+					msg << "PvP Status Bitmask: " << ship->getPvpStatusBitmask() << endl;
+					msg << "Options Bitmask: " << ship->getOptionsBitmask() << endl;
 
-				if (areas != nullptr) {
-					msg << endl << endl << "Current Active Areas:" << endl << endl;
+					if (ship->isShipAiAgent()) {
+						ShipAiAgent* shipAgent = ship->asShipAiAgent();
 
-					for (int i = 0; i < areas->size(); i++) {
-						ActiveArea* area = areas->get(i);
+						if (shipAgent != nullptr) {
+							msg << "Ship Agent Movement State: " << shipAgent->getMovementState() << endl;
 
-						if (area == nullptr)
-							continue;
+							ManagedReference<ShipObject*> followCopy = shipAgent->getFollowShipObject();
+							StringBuffer hasFollow;
 
-						msg << "Area #" << i << " -- " << area->getAreaName() << endl;
+							if (followCopy != nullptr) {
+								hasFollow << "True - " << " OID: " << followCopy->getObjectID();
+							} else {
+								hasFollow << "False";
+							}
+
+							msg << "Has Follow Object: " << hasFollow.toString() << endl;
+
+							ManagedReference<ShipObject*> targetCopy = shipAgent->getTargetShipObject();
+							StringBuffer hasTarget;
+
+							if (targetCopy != nullptr) {
+								hasTarget << "True - " << " OID: " << targetCopy->getObjectID();
+							} else {
+								hasTarget << "False";
+							}
+
+							msg << "Has Target Object: " << hasTarget.toString() << endl;
+							msg << "Current total Patrol Points: " << shipAgent->getPatrolPointSize() << endl;
+						}
+
 					}
 				}
 			}
-		/*
-			ShipObject Information
-		*/
-		} else if (object->isShipObject()) {
-			ShipObject* ship = object->asShipObject();
 
-			if (ship != nullptr) {
-				String aiEnabled = (ship->getOptionsBitmask() & OptionBitmask::AIENABLED ? "True" : "False");
-				msg << "AI Enabled: " << aiEnabled << endl;
-				msg << "PvP Status Bitmask: " << ship->getPvpStatusBitmask() << endl;
-				msg << "Options Bitmask: " << ship->getOptionsBitmask() << endl;
+			if (object->getZone() != nullptr) {
+				msg << "Location: " << object->getPosition().toString() << " " << object->getZone()->getZoneName() << endl;
+				msg << "Direction Angle - Radians: " << object->getDirection()->getRadians() << endl;
+			}
 
-				if (ship->isShipAiAgent()) {
-					ShipAiAgent* shipAgent = ship->asShipAiAgent();
+			ManagedReference<CityRegion*> city = object->getCityRegion().get();
 
-					if (shipAgent != nullptr) {
-						msg << "Ship Agent Movement State: " << shipAgent->getMovementState() << endl;
+			if (city != nullptr)
+				msg << "City Region oid: " << String::valueOf(city->getObjectID()) << ", name: " << city->getRegionDisplayedName() << endl;
 
-						ManagedReference<ShipObject*> followCopy = shipAgent->getFollowShipObject();
-						StringBuffer hasFollow;
+			creature->sendSystemMessage(msg.toString());
 
-						if (followCopy != nullptr) {
-							hasFollow << "True - " << " OID: " << followCopy->getObjectID();
-						} else {
-							hasFollow << "False";
-						}
+			ChatManager* chatManager = server->getZoneServer()->getChatManager();
+			String title = "getObjVars - " + String::valueOf(objectID);
+			chatManager->sendMail("System", title, msg.toString(), creature->getFirstName());
 
-						msg << "Has Follow Object: " << hasFollow.toString() << endl;
+			ManagedReference<SuiMessageBox*> box = new SuiMessageBox(creature, SuiWindowType::NONE);
 
-						ManagedReference<ShipObject*> targetCopy = shipAgent->getTargetShipObject();
-						StringBuffer hasTarget;
+			if (box != nullptr) {
+				StringBuffer titleStr;
+				titleStr << "GetObjVars: " << objectID;
 
-						if (targetCopy != nullptr) {
-							hasTarget << "True - " << " OID: " << targetCopy->getObjectID();
-						} else {
-							hasTarget << "False";
-						}
+				box->setPromptTitle(titleStr.toString());
+				box->setPromptText(msg.toString());
 
-						msg << "Has Target Object: " << hasTarget.toString() << endl;
-						msg << "Current total Patrol Points: " << shipAgent->getPatrolPointSize() << endl;
-					}
-				}
+				ghost->addSuiBox(box);
+				creature->sendMessage(box->generateMessage());
 			}
 		}
-
-		// Send information in a system message
-		creature->sendSystemMessage(msg.toString());
-
-		StringBuffer titleStr;
-		titleStr << "GetObjVars: " << objectID;
-
-		ChatManager* chatManager = zoneServer->getChatManager();
-
-		if (chatManager != nullptr) {
-			// Send information as in game mail
-			chatManager->sendMail("System", titleStr.toString(), msg.toString(), creature->getFirstName());
-		}
-
-		box->setPromptTitle(titleStr.toString());
-		box->setPromptText(msg.toString());
-
-		ghost->addSuiBox(box);
-
-		// Send information via sui box
-		creature->sendMessage(box->generateMessage());
 
 		return SUCCESS;
 	}

@@ -25,7 +25,6 @@
 #include "server/zone/managers/creature/PetManager.h"
 
 //#define DEBUG_GROUPS
-//#define DEBUG_GROUP_LEVEL
 
 void GroupObjectImplementation::sendBaselinesTo(SceneObject* player) {
 	if (player == nullptr)
@@ -150,9 +149,8 @@ void GroupObjectImplementation::addMember(CreatureObject* newMember, bool notify
 				shipID = rootParent->getObjectID();
 		}
 
-		if (notifyClient) {
+		if (notifyClient)
 			sendTo(newMember, true);
-		}
 
 		if (hasSquadLeader()) {
 			addGroupModifiers(newMember);
@@ -196,7 +194,7 @@ void GroupObjectImplementation::removeMember(CreatureObject* memberRemoved) {
 		if (wasLeader)
 			removeGroupModifiers();
 		else
-			removeGroupModifiers(memberRemoved, false);
+			removeGroupModifiers(memberRemoved);
 	}
 
 	// remove member from the list
@@ -391,16 +389,14 @@ void GroupObjectImplementation::disband() {
 
 	bool hasSL = hasSquadLeader();
 	int groupSize = groupMembers.size();
-	uint64 leaderID = getLeaderID();
 
 	for (int i = groupSize - 1; i >= 0; --i) {
 		ManagedReference<CreatureObject*> groupMember = getGroupMember(i);
 
 		groupMembers.remove(i);
 
-		if (groupMember == nullptr) {
+		if (groupMember == nullptr)
 			continue;
-		}
 
 		try {
 			Locker clocker(groupMember, _this.getReferenceUnsafeStaticCast());
@@ -412,10 +408,8 @@ void GroupObjectImplementation::disband() {
 					ghost->removeWaypointBySpecialType(WaypointObject::SPECIALTYPE_NEARESTMISSIONFORGROUP);
 				}
 
-				// Remove SL buffs
-				if (hasSL) {
-					removeGroupModifiers(groupMember, (leaderID == groupMember->getObjectID()));
-				}
+				if (hasSL)
+					removeGroupModifiers(groupMember);
 			}
 
 			groupMember->updateGroup(nullptr);
@@ -467,7 +461,7 @@ void GroupObjectImplementation::removeGroupModifiers() {
 		if (!player->isPlayerCreature())
 			continue;
 
-		removeGroupModifiers(player, true);
+		removeGroupModifiers(player);
 	}
 }
 
@@ -503,25 +497,23 @@ void GroupObjectImplementation::addGroupModifiers(CreatureObject* player) {
 	buff->addObservers();
 }
 
-void GroupObjectImplementation::removeGroupModifiers(CreatureObject* player, bool isLeader) {
-	if (player == nullptr) {
+void GroupObjectImplementation::removeGroupModifiers(CreatureObject* player) {
+	if (player == nullptr)
 		return;
-	}
 
-	if (!isLeader) {
-		Reference<CreatureObject*> leader = getLeader();
+	Reference<CreatureObject*> leader = getLeader();
 
-		if (leader == nullptr || !leader->isPlayerCreature()) {
-			return;
-		}
-	}
+	if (leader == nullptr)
+		return;
+
+	if (!leader->isPlayerCreature())
+		return;
 
 	Locker clocker(player, _this.getReferenceUnsafeStaticCast());
 	String action = "squadleader";
 
-	if (player->hasBuff(action.hashCode())) {
+	if (player->hasBuff(action.hashCode()))
 		player->removeBuff(action.hashCode());
-	}
 
 	player->updateSpeedAndAccelerationMods();
 }
@@ -561,67 +553,31 @@ float GroupObjectImplementation::getGroupHarvestModifier(CreatureObject* player)
 
 void GroupObjectImplementation::calculateGroupLevel() {
 	int highestPlayer = 0;
-	float newLevel = 0;
+	groupLevel = 0;
 	factionPetLevel = 0;
-
-#ifdef DEBUG_GROUP_LEVEL
-	StringBuffer levelMsg;
-#endif // DEBUG_GROUP_LEVEL
-
-	/*
-	for (int i = 0; i < 20; i++) {
-		int memberLevel = 25;
-
-		if (memberLevel > highestPlayer) {
-			newLevel += (memberLevel - highestPlayer + (highestPlayer / 5.f));
-			highestPlayer = memberLevel;
-		} else {
-			newLevel += (memberLevel / 5.f);
-		}
-	}
-	*/
 
 	for (int i = 0; i < getGroupSize(); i++) {
 		Reference<CreatureObject*> member = getGroupMember(i);
-
-		if (member == nullptr) {
-			continue;
-		}
-
-		int memberLevel = member->getLevel();
-
-#ifdef DEBUG_GROUP_LEVEL
-		levelMsg << "Member Level: " << memberLevel << endl
-		<< "Highest Player Level: " << highestPlayer << endl;
-#endif // DEBUG_GROUP_LEVEL
 
 		if (member->isPet()) {
 				ManagedReference<PetControlDevice*> pcd = member->getControlDevice().get().castTo<PetControlDevice*>();
 
 				if (pcd != nullptr && pcd->getPetType() == PetManager::FACTIONPET) {
-					factionPetLevel += (memberLevel / 5.f);
+					factionPetLevel += member->getLevel() / 5;
 				}
 
-				newLevel += (memberLevel / 5.f);
+				groupLevel += member->getLevel() / 5;
 		} else if (member->isPlayerCreature()) {
+			int memberLevel = member->getLevel();
+
 			if (memberLevel > highestPlayer) {
-				newLevel += (memberLevel - highestPlayer + (highestPlayer / 5.f));
+				groupLevel += (memberLevel - highestPlayer + (highestPlayer / 5));
 				highestPlayer = memberLevel;
 			} else {
-				newLevel += (memberLevel / 5.f);
+				groupLevel += memberLevel / 5;
 			}
 		}
-#ifdef DEBUG_GROUP_LEVEL
-		levelMsg << "Group Level Adjusted: " << newLevel << endl;
-#endif // DEBUG_GROUP_LEVEL
 	}
-
-#ifdef DEBUG_GROUP_LEVEL
-	levelMsg << "Calculate Group Level Result: " << newLevel << endl;
-	info(true) << levelMsg.toString();
-#endif // DEBUG_GROUP_LEVEL
-
-	groupLevel = round(newLevel);
 }
 
 int GroupObjectImplementation::getNumberOfPlayerMembers() {

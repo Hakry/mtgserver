@@ -8,7 +8,6 @@
 
 #ifdef SHIPPROJECTILE_DEBUG
 #include "server/zone/packets/ui/CreateClientPathMessage.h"
-#include "server/zone/packets/chat/ChatSystemMessage.h"
 #endif // SHIPPROJECTILE_DEBUG
 
 class ShipProjectile: public Object, public Logger {
@@ -185,11 +184,11 @@ public:
 
 #ifdef SHIPPROJECTILE_DEBUG
 	virtual void debugProjectile(ShipObject* ship, int hitResult) {
-		debugProjectileMessage(ship, hitResult);
-		debugProjectilePath(ship);
-	}
+		auto pilot = ship->getPilot();
+		if (pilot == nullptr) {
+			return;
+		}
 
-	virtual void debugProjectileMessage(ShipObject* ship, int hitResult) {
 		StringBuffer msg;
 
 		msg << "Projectile:     " << (hitResult == 1 ? "HIT" : hitResult == 0 ? "MISS" : "EXPIRE") << endl
@@ -208,17 +207,12 @@ public:
 			<< " deltaTime      " << (System::getMiliTime() - lastUpdate) << endl
 			<< "--------------------------------";
 
-		auto smsg = new ChatSystemMessage(msg.toString());
-		ship->broadcastMessage(smsg, true);
-	}
+		pilot->sendSystemMessage(msg.toString());
 
-	virtual void debugProjectilePath(ShipObject* ship) {
 		auto path = new CreateClientPathMessage();
-
 		path->addCoordinate(lastPosition);
 		path->drawBoundingSphere(thisPosition, Matrix4(), Sphere(Vector3::ZERO, radius));
 		path->addCoordinate(thisPosition);
-
 		ship->broadcastMessage(path, true);
 	}
 #endif //SHIPPROJECTILE_DEBUG
