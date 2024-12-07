@@ -100,10 +100,6 @@ public:
 				const String& attribute = attributes->get(i);
 				const String& group = groups->get(i);
 
-				if (attribute == "sockets") {
-					continue;
-				}
-
 				float min = minValues->get(i);
 				float max = maxValues->get(i);
 
@@ -314,10 +310,6 @@ public:
 
 	bool isRandomResourceContainer() const {
 		return isRandomResource;
-	}
-
-	bool isShipComponent() const {
-		return objectType & SceneObjectType::SHIPATTACHMENT;
 	}
 
 	uint32 getObjectType() const {

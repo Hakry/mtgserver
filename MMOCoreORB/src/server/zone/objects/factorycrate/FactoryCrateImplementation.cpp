@@ -41,34 +41,32 @@ void FactoryCrateImplementation::sendBaselinesTo(SceneObject* player) {
 
 }
 
-void FactoryCrateImplementation::fillAttributeList(AttributeListMessage* alm, CreatureObject* player) {
-	if (alm == nullptr || player == nullptr) {
-		return;
-	}
+void FactoryCrateImplementation::fillAttributeList(AttributeListMessage* alm, CreatureObject* object) {
+
+	TangibleObjectImplementation::fillAttributeList(alm, object);
 
 	Reference<TangibleObject*> prototype = getPrototype();
 
-	if (prototype == nullptr || !prototype->isTangibleObject()) {
-		error() << "Broken Factory Crate - ID: " << getObjectID() << " Name: " << getDisplayedName();
-
+	if(prototype == nullptr || !prototype->isTangibleObject()) {
+		if (object != nullptr) {
+			object->sendSystemMessage("This crate is broken, please contact support if you get this message.");
+		}
 		return;
 	}
 
-	alm->insertAttribute("volume", 1);
-	alm->insertAttribute("crafter", prototype->getCraftersName());
-	alm->insertAttribute("serial_number", prototype->getSerialNumber());
-
 	alm->insertAttribute("factory_count", getUseCount());
+
 	alm->insertAttribute("factory_attribs", "\\#pcontrast2 --------------");
 
-	alm->insertAttribute("object_type", prototype->getGameObjectTypeStringID());
-
 	StringBuffer type;
-	type << "@" << prototype->getObjectNameStringIdFile() << ":" << prototype->getObjectNameStringIdName();
+	type << "@" << prototype->getObjectNameStringIdFile() << ":"
+			<< prototype->getObjectNameStringIdName();
 
+	alm->insertAttribute("object_type", "@got_n:component");
 	alm->insertAttribute("original_name", type);
 
-	prototype->fillAttributeList(alm, player);
+	if(prototype != nullptr)
+		prototype->fillAttributeList(alm, object);
 }
 
 void FactoryCrateImplementation::fillObjectMenuResponse(ObjectMenuResponse* menuResponse, CreatureObject* player) {

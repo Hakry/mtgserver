@@ -238,7 +238,6 @@ void DestroyMissionObjectiveImplementation::spawnLair() {
 	 	lairObject->registerObserver(ObserverEventType::AIMESSAGE, lairObserver);
 	 	lairObject->registerObserver(ObserverEventType::OBJECTREMOVEDFROMZONE, lairObserver);
 		lairObject->registerObserver(ObserverEventType::NOPLAYERSINRANGE, lairObserver);
-		lairObject->registerObserver(ObserverEventType::CREATUREDESPAWNED, lairObserver);
 
 		zone->transferObject(lairObject, -1, true);
 

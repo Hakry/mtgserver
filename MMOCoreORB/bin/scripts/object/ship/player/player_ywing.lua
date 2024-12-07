@@ -50,10 +50,13 @@ object_ship_player_player_ywing = object_ship_player_shared_player_ywing:new {
 
 	containerComponent = "ShipContainerComponent",
 
-	-- SHIPMULTIPASSENGER
-	gameObjectType = 536870918,
+	-- FIGHTERSHIP
+	gameObjectType = 536870913,
 	category = "mediumfighter",
 	level = 1,
+
+	-- SHIPMULTIPASSENGER
+	gameObjectType = 536870918,
 
 	attributes = {
 		{"speedRotationFactorMin", 0.1},

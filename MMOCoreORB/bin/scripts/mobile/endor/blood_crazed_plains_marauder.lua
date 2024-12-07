@@ -30,7 +30,19 @@ blood_crazed_plains_marauder = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "endor_marauder_tier_2", chance = 10000000}
+				{group = "pistols", chance = 750000},
+				{group = "carbines", chance = 750000},
+				{group = "rifles", chance = 750000},
+				{group = "melee_baton", chance = 1000000},
+				{group = "loot_kit_parts", chance = 1000000},
+				{group = "armor_attachments", chance = 500000},
+				{group = "clothing_attachments", chance = 500000},
+				{group = "bone_armor", chance = 800000},
+				{group = "chitin_armor", chance = 800000},
+				{group = "mabari_armor", chance = 800000},
+				{group = "tantel_armor", chance = 800000},
+				{group = "ubese_armor", chance = 800000},
+				{group = "color_crystals", chance = 750000},
 			}
 		}
 	},
@@ -40,7 +52,7 @@ blood_crazed_plains_marauder = Creature:new {
 	primaryWeapon = "marauder_melee",
 	secondaryWeapon = "pirate_pistol",
 	conversationTemplate = "",
-
+	
 	-- primaryAttacks and secondaryAttacks should be separate skill groups specific to the weapon type listed in primaryWeapon and secondaryWeapon
 	-- Use merge() to merge groups in creatureskills.lua together. If a weapon is set to "none", set the attacks variable to empty brackets
 	primaryAttacks = merge(swordsmanmaster,brawlermaster),

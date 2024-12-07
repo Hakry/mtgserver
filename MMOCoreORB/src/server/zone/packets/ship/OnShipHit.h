@@ -10,11 +10,9 @@
 class OnShipHit : public ObjectControllerMessage {
 public:
 	OnShipHit(ShipObject* ship, const Vector3& hitDirection, int shipHitType, float newPercent, float oldPercent) : ObjectControllerMessage(ship->getObjectID(), 0x1B, 0x432) {
-		float radius = ship->getBoundingRadius();
-
-		writeFloat(Math::clamp(-radius, hitDirection.getX(), radius));
-		writeFloat(Math::clamp(-radius, hitDirection.getY(), radius));
-		writeFloat(Math::clamp(-radius, hitDirection.getZ(), radius));
+		writeFloat(Math::clamp(-1.f, hitDirection.getX(), 1.f));
+		writeFloat(Math::clamp(-1.f, hitDirection.getZ(), 1.f));
+		writeFloat(Math::clamp(-1.f, hitDirection.getY(), 1.f));
 		writeInt(shipHitType);
 		writeFloat(newPercent);
 		writeFloat(oldPercent);

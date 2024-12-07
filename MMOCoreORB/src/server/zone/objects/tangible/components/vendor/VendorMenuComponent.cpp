@@ -180,7 +180,7 @@ int VendorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 					return 0;
 				}
 
-				ManagedReference<VendorAdBarkingSession*> session = new VendorAdBarkingSession(player, sceneObject->asTangibleObject());
+				ManagedReference<VendorAdBarkingSession*> session = new VendorAdBarkingSession(player, sceneObject);
 				session->initializeSession();
 
 			} else {

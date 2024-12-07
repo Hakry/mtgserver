@@ -31,7 +31,11 @@ slaver = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "slaver_tier_1", chance = 10000000}
+				{group = "junk", chance = 2500000},
+				{group = "wearables_common", chance = 2000000},
+				{group = "pistols", chance = 2000000},
+				{group = "tailor_components", chance = 1500000},
+				{group = "loot_kit_parts", chance = 2000000}
 			}
 		}
 	},

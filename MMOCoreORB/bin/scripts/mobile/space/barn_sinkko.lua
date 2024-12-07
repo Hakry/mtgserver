@@ -3,8 +3,6 @@ barn_sinkko = Creature:new {
 	socialGroup = "imperial",
 	faction = "imperial",
 	mobType = MOB_NPC,
-	planetMapCategory = "trainer",
-	planetMapSubCategory = "trainer_pilot_imperial",
 	level = 100,
 	chanceHit = 1,
 	damageMin = 645,
@@ -25,10 +23,10 @@ barn_sinkko = Creature:new {
 	ferocity = 0,
 	pvpBitmask = NONE,
 	creatureBitmask = PACK,
-	optionsBitmask = AIENABLED + JTLINTERESTING,
+	optionsBitmask = AIENABLED,
 	diet = HERBIVORE,
 
-	templates = {"object/mobile/dressed_imperial_trainer_space_03.iff"},
+	templates = {"object/mobile/space_greeter_kadaara_imperial_officer.iff"},
 	lootGroups = {},
 
 	-- Primary and secondary weapon should be different types (rifle/carbine, carbine/pistol, rifle/unarmed, etc)

@@ -298,11 +298,9 @@ void FishingManagerImplementation::stopFishing(CreatureObject* player, uint32 bo
 
 	// stop events
 	if (destroyMarker) {
+		Locker locker(marker, player);
 
-		if (marker != nullptr) {
-			Locker locker(marker, player);
-			removeMarker(player, marker);
-		}
+		removeMarker(player, marker);
 
 		stopFishingEvent(player);
 

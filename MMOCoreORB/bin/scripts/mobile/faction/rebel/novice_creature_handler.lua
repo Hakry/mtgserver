@@ -34,7 +34,12 @@ novice_creature_handler = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "rebel_tier_1", chance = 10000000}
+				{group = "junk", chance = 5000000},
+				{group = "rifles", chance = 1000000},
+				{group = "pistols", chance = 1000000},
+				{group = "melee_weapons", chance = 1000000},
+				{group = "carbines", chance = 1000000},
+				{group = "wearables_common", chance = 1000000}
 			}
 		}
 	},

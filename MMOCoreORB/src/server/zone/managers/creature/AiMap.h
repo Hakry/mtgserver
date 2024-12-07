@@ -171,7 +171,6 @@ public:
 		lua->setGlobalInt("HARVESTING",					AiAgent::HARVESTING						);
 		lua->setGlobalInt("RESTING",					AiAgent::RESTING						);
 		lua->setGlobalInt("CONVERSING",					AiAgent::CONVERSING						);
-		lua->setGlobalInt("LAIR_HEALING",				AiAgent::LAIR_HEALING					);
 
 		lua->setGlobalInt("UPRIGHT",					CreaturePosture::UPRIGHT				);
 		lua->setGlobalInt("CROUCHED",					CreaturePosture::CROUCHED				);
@@ -189,7 +188,7 @@ public:
 		lua->setGlobalInt("INCAPACITATED",				CreaturePosture::INCAPACITATED			);
 		lua->setGlobalInt("DEAD",						CreaturePosture::DEAD					);
 
-		lua->setGlobalInt("STATIONARY_LOCOMOTION",		CreatureLocomotion::STATIONARY			);
+		lua->setGlobalInt("STATIONARY",					CreatureLocomotion::STATIONARY			);
 		lua->setGlobalInt("SLOW",						CreatureLocomotion::SLOW				);
 		lua->setGlobalInt("FAST",						CreatureLocomotion::FAST				);
 

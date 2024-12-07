@@ -87,27 +87,15 @@ void TangibleObjectImplementation::notifyLoadFromDatabase() {
 	SceneObjectImplementation::notifyLoadFromDatabase();
 
 	if (activeAreas.size() > 0) {
-		Reference<TangibleObject*> refTano = asTangibleObject();
+		TangibleObject* tano = asTangibleObject();
 
 		for (int i = activeAreas.size() - 1; i >= 0; i--) {
 			auto& area = activeAreas.get(i);
 
-			if (area == nullptr || area->isNavArea()) {
-				continue;
+			if (!area->isNavArea()) {
+				area->notifyExit(tano);
+				activeAreas.remove(i);
 			}
-
-			activeAreas.remove(i);
-
-			Core::getTaskManager()->scheduleTask([refTano, area] () {
-				if (refTano == nullptr || area == nullptr) {
-					return;
-				}
-
-				Locker lock(area);
-				Locker clock(refTano, area);
-
-				area->notifyExit(refTano);
-			}, "notifyLoadAAExitLambda", 200);
 		}
 	}
 
@@ -322,13 +310,7 @@ void TangibleObjectImplementation::sendPvpStatusTo(CreatureObject* player) {
 	if (thisFactionStatus == FactionStatus::OVERT && thisFutureStatus == FactionStatus::COVERT)
 		newPvpStatusBitmask |= ObjectFlag::WASDECLARED;
 
-	auto thisFaction = getFaction();
-	auto playerFaction = player->getFaction();
-
-	bool isShipAgent = isShipAiAgent();
-
-	// Handle enemy flagging for Rebel/Imperial
-	if (((isAiAgent() && !isPet() && (thisFactionStatus >= FactionStatus::COVERT)) || isShipAgent || (isShipObject() && !isShipAgent)) && (thisFaction > 0) && (playerFaction > 0) && (thisFaction != playerFaction)) {
+	if (((isAiAgent() && !isPet()) || isShipAiAgent())  && getFaction() > 0 && player->isPlayerCreature() && player->getFaction() > 0 && getFaction() != player->getFaction() && thisFactionStatus >= FactionStatus::COVERT) {
 		if (ConfigManager::instance()->useCovertOvertSystem()) {
 			PlayerObject* ghost = player->getPlayerObject();
 
@@ -343,13 +325,6 @@ void TangibleObjectImplementation::sendPvpStatusTo(CreatureObject* player) {
 			} else if (newPvpStatusBitmask & ObjectFlag::ENEMY) {
 				newPvpStatusBitmask &= ~ObjectFlag::ENEMY;
 			}
-		}
-	} else if (!(newPvpStatusBitmask & ObjectFlag::ENEMY) && isShipAgent && (player->isPilotingShip() || player->isOnboardPobShip() || player->isShipGunner())) {
-		auto thisShipAgent = asShipAiAgent();
-		auto playerRoot =  player->getRootParent();
-
-		if (thisShipAgent != nullptr && playerRoot != nullptr && thisShipAgent->isEnemyShip(playerRoot->getObjectID())) {
-			newPvpStatusBitmask |= ObjectFlag::ENEMY;
 		}
 	}
 
@@ -385,9 +360,8 @@ void TangibleObjectImplementation::broadcastPvpStatusBitmask() {
 		if (creo->isPlayerCreature())
 			sendPvpStatusTo(creo);
 
-		if (thisCreo != nullptr && thisCreo->isPlayerCreature()) {
+		if (thisCreo != nullptr && thisCreo->isPlayerCreature())
 			creo->sendPvpStatusTo(thisCreo);
-		}
 	}
 
 	if (thisCreo == nullptr)
@@ -478,85 +452,76 @@ void TangibleObjectImplementation::synchronizedUIStopListen(CreatureObject* play
 }
 
 void TangibleObjectImplementation::removeOutOfRangeObjects() {
-	auto rangeCheckObject = asTangibleObject();
+	TangibleObject* thisObject = asTangibleObject();
 
-	auto rootParent = getRootParent();
+	if (thisObject == nullptr)
+		return;
+
+	auto rootParent = thisObject->getRootParent();
 	auto parent = getParent().get();
 
 	if (parent != nullptr && (parent->isVehicleObject() || parent->isMount())) {
-		rangeCheckObject = parent->asTangibleObject();
+		thisObject = parent->asTangibleObject();
 	} else if (rootParent != nullptr && (rootParent->isShipObject() || rootParent->isStructureObject())) {
-		rangeCheckObject = rootParent->asTangibleObject();
+		thisObject = rootParent->asTangibleObject();
 	}
 
-	if (rangeCheckObject == nullptr) {
+	if (thisObject == nullptr)
 		return;
-	}
 
 #ifdef DEBUG_COV
-	info(true) << "TangibleObjectImplementation::removeOutOfRangeObjects() called -- by: " << getDisplayedName() << " ID: " << getObjectID() << " Using Parent or Root Object: " << rangeCheckObject->getDisplayedName() << " Parent/Rooot ID: " << rangeCheckObject->getObjectID();
+	info(true) << "TangibleObjectImplementation::removeOutOfRangeObjects() called - For Object: " << thisObject->getDisplayedName();
 #endif // DEBUG_COV
 
 	SortedVector<TreeEntry*> closeObjects;
+	auto closeObjectsVector = thisObject->getCloseObjects();
 
-	// Using this Tangible objects COV
-	auto closeObjectsVector = getCloseObjects();
-
-	if (closeObjectsVector == nullptr) {
+	if (closeObjectsVector == nullptr)
 		return;
-	}
 
 	closeObjectsVector->safeCopyTo(closeObjects);
 
-	auto worldPos = rangeCheckObject->getWorldPosition();
+	auto worldPos = thisObject->getWorldPosition();
 
 	float ourX = worldPos.getX();
 	float ourY = worldPos.getY();
 	float ourZ = worldPos.getZ();
 
-	float ourRange = rangeCheckObject->getOutOfRangeDistance();
-	bool objectIsShip = rangeCheckObject->isShipObject();
+	float ourRange = thisObject->getOutOfRangeDistance();
+	bool objectIsShip = thisObject->isShipObject();
 
-	uint64 thisObjectID = getObjectID();
-	uint64 rangeCheckObjectId = rangeCheckObject->getObjectID();
+	int countChecked = 0;
+	int countCov = closeObjects.size();
 
 	for (int i = closeObjects.size() - 1; i >= 0; i--) {
-		ManagedReference<SceneObject*> covObject = static_cast<SceneObject*>(closeObjects.getUnsafe(i));
+		auto covObject = static_cast<SceneObject*>(closeObjects.getUnsafe(i));
 
-		if (covObject == nullptr) {
+		// Don't remove ourselves
+		if (covObject == nullptr || covObject->getObjectID() == getObjectID()) {
 			continue;
 		}
 
-		// Skip removing space stations, they are global objects for the space zones and always in range
-		if (covObject->isSpaceStation()) {
-			continue;
-		}
-
-		uint64 covObjectID = covObject->getObjectID();
-
-		// Don't remove ourselves or our parent / root parent that is being used to remove objects out of range
-		if (covObjectID == thisObjectID || covObjectID == rangeCheckObjectId) {
+		// Don't remove our own root parent, this applies to large things like Geo Caves due to their size.
+		if (rootParent != nullptr && rootParent->getObjectID() == covObject->getObjectID()) {
 			continue;
 		}
 
 		// Check for objects inside another object
 		auto covObjectRoot = covObject->getRootParent();
-		uint64 covParentID = covObject->getParentID();
 
-		/* If covObjectRoot is not null, skip given should be managed by the rootParent (building, vehicle, ship etc.)
-		* If the covObject has a parent and this objects parent is not null, skip the covObject. Removal should be notified from this objects parent.
-		*/
-		if (covObjectRoot != nullptr || (covParentID > 0 && parent != nullptr)) {
+		// They should be managed by the parent
+		if (covObjectRoot != nullptr) {
 			continue;
 		}
+
+		countChecked++;
 
 		auto objectWorldPos = covObject->getWorldPosition();
 
 		float deltaX = ourX - objectWorldPos.getX();
 		float deltaY = ourY - objectWorldPos.getY();
 
-		float outOfRangeDistance = covObject->getOutOfRangeDistance();
-		float outOfRangeSqr = Math::sqr(Math::max(ourRange, outOfRangeDistance));
+		float outOfRangeSqr = Math::sqr(Math::max(ourRange, covObject->getOutOfRangeDistance()));
 		float deltaDistance = 0.f;
 
 		// This range calculation is used for everything in GroundZone
@@ -573,44 +538,25 @@ void TangibleObjectImplementation::removeOutOfRangeObjects() {
 			continue;
 		}
 
+		countCov--;
+
 		/*
-		if (isPlayerCreature() && ((covObject->getObjectID() == COVOBJECTIDHERE) || covObject->isPlayerCreature() || covObject->isVehicleObject())) {
+		if (getObjectID() == PLAYERIDHERE && (covObject->isVehicleObject() || covObject->isPlayerCreature())) {
 			StringBuffer msg;
 
-			msg << endl << endl
-			<< getDisplayedName() << " -- TangibleObjectImplementation::removeOutOfRangeObjects() removing Object from COV -- " << covObject->getDisplayedName() << endl
-			<< "COV Size: " << getCloseObjects()->size() << endl
-			<< "Parent ID: " << getParentID() << endl
-			<< "Root Parent ID: " << (rootParent != nullptr ? rootParent->getObjectID() : 0) << endl
-			<< "Player is using Range Check Object: " << rangeCheckObject->getDisplayedName() <<  " ID: " <<  rangeCheckObject->getObjectID() << endl
-			<< "Object is Ship: " << (objectIsShip ? "true" : "false") << endl
-			<< "Player World Position: " << worldPos.toString() << endl
-			<< "COV Object World Position: " << objectWorldPos.toString() << endl
-			<< "Delta Distance: " << deltaDistance << endl
-			<< "Out of Range Squared: " << outOfRangeSqr << endl << endl;
-
+			msg << getDisplayedName() << " removeOutOfRangeObjects task removed object from COV: " << covObject->getDisplayedName() << endl;
+			msg << "Our World Pos: " << worldPos.toString() << " Distance Sq: " << deltaDistance << " RangeSq Checked Against: " << outOfRangeSqr;
 			info(true) << msg.toString();
-		}
-		*/
+		}*/
 
-		// Remove covObject from this objects COV
-		if (rangeCheckObject->isVehicleObject() || rangeCheckObject->isMount()) {
-			rangeCheckObject->removeInRangeObject(covObject);
-		} else {
-			rangeCheckObject = asTangibleObject();
-
-			if (getCloseObjects() != nullptr) {
-				removeInRangeObject(covObject);
-			} else {
-				notifyDissapear(covObject);
-			}
+		// Remove covObject from thisObjects (or using thisObject's parent)
+		if (thisObject->getCloseObjects() != nullptr) {
+			thisObject->removeInRangeObject(covObject);
 		}
 
-		// Remove the object from covObjects' COV
+		// Remove thisObject from covObjects COV
 		if (covObject->getCloseObjects() != nullptr) {
-			covObject->removeInRangeObject(rangeCheckObject);
-		} else {
-			covObject->notifyDissapear(rangeCheckObject);
+			covObject->removeInRangeObject(thisObject);
 		}
 	}
 }
@@ -1511,42 +1457,10 @@ void TangibleObjectImplementation::addActiveArea(ActiveArea* area) {
 }
 
 void TangibleObjectImplementation::sendTo(SceneObject* player, bool doClose, bool forceLoadContainer) {
-	if (isInvisible() && player != asTangibleObject()) {
+	if (isInvisible() && player != asTangibleObject())
 		return;
-	}
 
 	SceneObjectImplementation::sendTo(player, doClose, forceLoadContainer);
-}
-
-void TangibleObjectImplementation::notifyInsert(TreeEntry* object) {
-	if (object == nullptr)
-		return;
-
-	SceneObjectImplementation::notifyInsert(object);
-
-	if (isCreatureObject()) {
-		return;
-	}
-
-	auto sceneO = static_cast<SceneObject*>(object);
-
-	if (sceneO == nullptr || !sceneO->isPlayerCreature()) {
-		return;
-	}
-
-	sendTo(sceneO, true, false);
-}
-
-Vector3 TangibleObjectImplementation::getWorldPosition() {
-	auto root = getRootParent();
-
-	if (root != nullptr && root->isPobShip()) {
-		updateWorldPosition(false);
-	}
-
-	auto currentWorld = worldCoordinates.getPosition();
-
-	return currentWorld;
 }
 
 bool TangibleObjectImplementation::isCityStreetLamp() const {
@@ -1593,24 +1507,6 @@ bool TangibleObjectImplementation::isInNavMesh() {
 	}
 
 	return false;
-}
-
-bool TangibleObjectImplementation::isVendor() {
-	auto data = getDataObjectComponent()->get();
-
-	if (data == nullptr || !data->isVendorData() || (isAiAgent() && !(getOptionsBitmask() & OptionBitmask::VENDOR))) {
-		return false;
-	}
-
-	return true;
-}
-
-bool TangibleObjectImplementation::isInvulnerable()  {
-	return optionsBitmask & OptionBitmask::INVULNERABLE;
-}
-
-bool TangibleObjectImplementation::isDestroying()  {
-	return optionsBitmask & OptionBitmask::DESTROYING;
 }
 
 TangibleObject* TangibleObject::asTangibleObject() {

@@ -38,7 +38,7 @@ commoner_technician = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "technician_tier_1", chance = 10000000}
+				{group = "junk", chance = 10000000},
 			},
 			lootChance = 5000000
 		}

@@ -14,7 +14,10 @@
 
 class PurchaseTicketCommand : public QueueCommand {
 public:
-	PurchaseTicketCommand(const String& name, ZoneProcessServer* server) : QueueCommand(name, server) {
+
+	PurchaseTicketCommand(const String& name, ZoneProcessServer* server)
+		: QueueCommand(name, server) {
+
 	}
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
@@ -33,14 +36,12 @@ public:
 
 		for (int i = 0; i < closeObjects.size(); i++) {
 			SceneObject* object = cast<SceneObject*>( closeObjects.get(i));
-
-			if (object == nullptr || (object->getGameObjectType() != SceneObjectType::TRAVELTERMINAL) || !checkDistance(creature, object, 8.f)) {
-				continue;
+			if (object != nullptr && object->getGameObjectType() == SceneObjectType::TRAVELTERMINAL && checkDistance(creature, object, 8)) {
+				nearTravelTerminal = true;
+				travelTerminal = object;
+				break;
 			}
 
-			nearTravelTerminal = true;
-			travelTerminal = object;
-			break;
 		}
 
 		if (!nearTravelTerminal) {
@@ -52,41 +53,37 @@ public:
 
 		int departureTax = 0;
 
-		if (currentCity != nullptr) {
+		if (currentCity != nullptr){
 			if (currentCity->isBanned(creature->getObjectID())) {
-				creature->sendSystemMessage("@city/city:city_cant_purchase_ticket"); // You are banned from using the services of this city. You cannot purchase a ticket.
+				creature->sendSystemMessage("@city/city:city_cant_purchase_ticket"); //You are banned from using the services of this city. You cannot purchase a ticket.
 				return GENERALERROR;
 			}
-			if (!currentCity->isClientRegion()) {
+			if(!currentCity->isClientRegion()){
 				departureTax = currentCity->getTravelTax();
 			}
 		}
 
 		ManagedReference<SceneObject*> inventory = creature->getInventory();
 
-		if (inventory == nullptr) {
+		if (inventory == nullptr)
 			return GENERALERROR;
-		}
 
 		String departurePlanet, departurePoint, arrivalPlanet, arrivalPoint, type;
 		bool roundTrip = true;
 
 		try {
 			UnicodeTokenizer tokenizer(arguments);
-
 			tokenizer.getStringToken(departurePlanet);
 			tokenizer.getStringToken(departurePoint);
 			tokenizer.getStringToken(arrivalPlanet);
 			tokenizer.getStringToken(arrivalPoint);
-
-			if (tokenizer.hasMoreTokens()) {
+			if(tokenizer.hasMoreTokens()) {
 				tokenizer.getStringToken(type);
-
-				if (type == "single" || type == "0") {
+				if (type == "single" || type == "0")
 					roundTrip = false;
-				}
 			}
-		} catch (Exception& e) {
+
+		} catch(Exception& e) {
 			return INVALIDPARAMETERS;
 		}
 
@@ -95,18 +92,19 @@ public:
 		arrivalPlanet = arrivalPlanet.replaceAll("_", " ");
 		arrivalPoint = arrivalPoint.replaceAll("_", " ");
 
-		auto zoneServer = server->getZoneServer();
+		ZoneServer* zoneServer = server->getZoneServer();
 
-		if (zoneServer == nullptr) {
+		if (zoneServer == nullptr)
 			return GENERALERROR;
-		}
 
 		ManagedReference<Zone*> departureZone = zoneServer->getZone(departurePlanet);
 		ManagedReference<Zone*> arrivalZone = zoneServer->getZone(arrivalPlanet);
 
-		if (departureZone == nullptr || arrivalZone == nullptr) {
+		if (departureZone == nullptr)
 			return GENERALERROR;
-		}
+
+		if (arrivalZone == nullptr)
+			return GENERALERROR;
 
 		ManagedReference<PlanetManager*> pmDeparture = departureZone->getPlanetManager();
 		ManagedReference<PlanetManager*> pmArrival = arrivalZone->getPlanetManager();
@@ -123,21 +121,19 @@ public:
 
 		Reference<PlanetTravelPoint*>  destPoint = pmArrival->getPlanetTravelPoint(arrivalPoint);
 
-		if (destPoint == nullptr) {
+		if (destPoint == nullptr)
 			return GENERALERROR;
-		}
 
 		ManagedReference<CreatureObject*> arrivalShuttle = destPoint->getShuttle();
 
-		if (arrivalShuttle == nullptr) {
+		if (arrivalShuttle == nullptr)
 			return GENERALERROR;
-		}
 
 		ManagedReference<CityRegion*> destCity = arrivalShuttle->getCityRegion().get();
 
-		if (destCity != nullptr) {
+		if (destCity != nullptr){
 			if (destCity.get()->isBanned(creature->getObjectID())) {
-				creature->sendSystemMessage("@city/city:banned_from_that_city"); // You have been banned from traveling to that city by the city militia
+				creature->sendSystemMessage("@city/city:banned_from_that_city");  // You have been banned from traveling to that city by the city militia
 				return GENERALERROR;
 			}
 		}

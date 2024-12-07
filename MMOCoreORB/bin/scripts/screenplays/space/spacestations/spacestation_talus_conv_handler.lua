@@ -49,11 +49,11 @@ function SpacestationTalusConvoHandler:runScreenHandlers(pConvTemplate, pPlayer,
 
 	-- Handle Landing
 	if (screenID == "spacestation_talus_land_dearic_complete") then
-		createEvent(3500, "SpaceStationScreenPlay", "landShip", pPlayer, "dearic")
+		createEvent(1000, "SpaceStationScreenPlay", "landShip", pPlayer, "dearic")
 	elseif (screenID == "spacestation_talus_land_nashal_complete") then
-		createEvent(3500, "SpaceStationScreenPlay", "landShip", pPlayer, "nashal")
+		createEvent(1000, "SpaceStationScreenPlay", "landShip", pPlayer, "nashal")
 	elseif (screenID == "spacestation_talus_land_imperial_complete") then
-		createEvent(3500, "SpaceStationScreenPlay", "landShip", pPlayer, "talus_imperial")
+		createEvent(1000, "SpaceStationScreenPlay", "landShip", pPlayer, "talus_imperial")
 	end
 
 	-- Handle Repair Options

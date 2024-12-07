@@ -132,6 +132,7 @@
 #include "templates/SharedUniverseObjectTemplate.h"
 
 
+
 #include "conf/ConfigManager.h"
 #include "tre3/TreeArchive.h"
 
@@ -775,7 +776,6 @@ void TemplateManager::registerGlobals() {
 	luaTemplatesInstance->setGlobalInt("RECRUITER", EventPerkDeedTemplate::RECRUITER);
 	luaTemplatesInstance->setGlobalInt("GAME", EventPerkDeedTemplate::GAME);
 	luaTemplatesInstance->setGlobalInt("HONORGUARD", EventPerkDeedTemplate::HONORGUARD);
-	luaTemplatesInstance->setGlobalInt("NPCACTOR", EventPerkDeedTemplate::NPCACTOR);
 
 	luaTemplatesInstance->setGlobalInt("STIM_A", StimPackTemplate::STIM_A);
 	luaTemplatesInstance->setGlobalInt("STIM_B", StimPackTemplate::STIM_B);

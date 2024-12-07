@@ -34,7 +34,13 @@ fringer = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "mercenary_tier_1", chance = 10000000}
+				{group = "junk", chance = 3500000},
+				{group = "wearables_common", chance = 2000000},
+				{group = "armor_all", chance = 500000},
+				{group = "rifles", chance = 1000000},
+				{group = "pistols", chance = 1000000},
+				{group = "melee_weapons", chance = 1000000},
+				{group = "carbines", chance = 1000000},
 			}
 		}
 	},
@@ -45,7 +51,7 @@ fringer = Creature:new {
 	secondaryWeapon = "unarmed",
 	conversationTemplate = "",
 	reactionStf = "@npc_reaction/slang",
-
+	
 	-- primaryAttacks and secondaryAttacks should be separate skill groups specific to the weapon type listed in primaryWeapon and secondaryWeapon
 	-- Use merge() to merge groups in creatureskills.lua together. If a weapon is set to "none", set the attacks variable to empty brackets
 	primaryAttacks = merge(marksmannovice,brawlernovice),

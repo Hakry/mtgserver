@@ -34,7 +34,11 @@ mokk_shaman = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "mokk_tribe_tier_2", chance = 10000000}
+				{group = "junk", chance = 5000000},
+				{group = "loot_kit_parts", chance = 3000000},
+				{group = "armor_attachments", chance = 500000},
+				{group = "clothing_attachments", chance = 500000},
+				{group = "color_crystals", chance = 1000000}
 			}
 		}
 	},

@@ -11,31 +11,21 @@ public:
 	}
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
-		if (!creature->isPet()) {
-			return GENERALERROR;
-		}
-
 		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().get().castTo<PetControlDevice*>();
-
 		if (controlDevice == nullptr)
 			return GENERALERROR;
 
-		ManagedReference<AiAgent*> pet = creature->asAiAgent();
-
-		if (pet == nullptr) {
+		ManagedReference<AiAgent*> pet = cast<AiAgent*>(creature);
+		if (pet == nullptr)
 			return GENERALERROR;
-		}
 
 		ManagedReference<CreatureObject*> player = pet->getLinkedCreature().get();
-
-		if (player == nullptr || !player->isPlayerCreature()) {
+		if (player == nullptr)
 			return GENERALERROR;
-		}
 
 		// Check if droid has power
 		if (controlDevice->getPetType() == PetManager::DROIDPET) {
 			ManagedReference<DroidObject*> droidPet = cast<DroidObject*>(pet.get());
-
 			if (droidPet == nullptr)
 				return GENERALERROR;
 
@@ -46,14 +36,11 @@ public:
 		}
 
 		ManagedReference<GroupObject*> group = pet->getGroup();
-
 		if (group == nullptr) {
 			Locker clocker(player, pet);
-
 			GroupManager::instance()->inviteToGroup(player, pet);
-		} else {
+		} else
 			GroupManager::instance()->leaveGroup(group, pet);
-		}
 
 		return SUCCESS;
 	}

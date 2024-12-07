@@ -24,55 +24,40 @@ public:
 		if (!creature->isPlayerCreature())
 			return GENERALERROR;
 
-		auto zoneServer = server->getZoneServer();
+		ManagedReference<SceneObject*> objectToOpen = nullptr;
 
-		if (zoneServer == nullptr)
-			return GENERALERROR;
+		StringTokenizer args(arguments.toString());
 
-		ManagedReference<SceneObject*> objectToOpen = zoneServer->getObject(target);
+		// creature->info(true) << "OpenContainerCommand called Target = " << target << " Args = " << arguments.toString();
+
+		int counter = 0;
+		if (args.hasMoreTokens())
+			counter = args.getIntToken();
+
+		objectToOpen = server->getZoneServer()->getObject(target);
 
 		if (objectToOpen == nullptr) {
 			return GENERALERROR;
 		}
 
-		ManagedReference<SceneObject*> objectsParent = objectToOpen->getParent();
-		bool craftingStation = objectsParent != nullptr && objectsParent->isCraftingStation();
+		ManagedReference<SceneObject*> objectParent = objectToOpen->getParent().get();
 
-		bool playerItem = objectToOpen->getParentRecursively(SceneObjectType::PLAYERCREATURE) != nullptr;
-
-		ManagedReference<SceneObject*> rootParent = objectToOpen->getRootParent();
-		bool clientObject = rootParent != nullptr && rootParent->isClientObject();
-
-		if (craftingStation) {
-			if (!creature->isInRange(objectsParent, 12.0f)) {
-				StringIdChatParameter param;
-				param.setStringId("@container_error_message:container09_prose"); // You are out of range of %TT.
-				param.setTT(objectsParent->getObjectName());
-				creature->sendSystemMessage(param);
-				return TOOFAR;
-			}
-
-			if (!CollisionManager::checkLineOfSight(objectsParent, creature)) {
-				StringIdChatParameter msgParam;
-				msgParam.setStringId("@container_error_message:container18_prose"); // You can't see %TT. You may have to move closer to it.
-				msgParam.setTT(objectsParent->getObjectName());
-				creature->sendSystemMessage(msgParam);
-				return GENERALERROR;
-			}
-		} else if (objectToOpen->isTurret() || (!playerItem && (objectsParent == nullptr || clientObject))) { //Perform checks if not player item and outside, or inside in clientObject structure
-			if (!creature->isInRange(objectToOpen, 7.0f)) {
+		if (objectParent != nullptr && objectParent->isCraftingStation()) {
+			if (!creature->isInRange(objectParent, 12.0f)) {
 				StringIdChatParameter param;
 				param.setStringId("@container_error_message:container09_prose"); // You are out of range of %TT.
 				param.setTT(objectToOpen->getObjectName());
 				creature->sendSystemMessage(param);
+
 				return TOOFAR;
 			}
 
-			if (!CollisionManager::checkLineOfSight(objectToOpen, creature)) {
+			if (!CollisionManager::checkLineOfSight(objectParent, creature)) {
 				StringIdChatParameter msgParam;
 				msgParam.setStringId("@container_error_message:container18_prose"); // You can't see %TT. You may have to move closer to it.
 				msgParam.setTT(objectToOpen->getObjectName());
 				creature->sendSystemMessage(msgParam);
+
 				return GENERALERROR;
 			}
 		}
@@ -101,7 +86,6 @@ public:
 		}*/
 
 		ManagedReference<Container*> container = objectToOpen.castTo<Container*>();
-
 		if (container != nullptr && container->isContainerLocked()) {
 			creature->sendSystemMessage("@slicing/slicing:locked");
 			return SUCCESS;

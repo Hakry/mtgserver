@@ -39,13 +39,15 @@ bool SpaceStationObjectImplementation::sendConversationStartTo(SceneObject* play
 	}
 
 	uint64 oid = getObjectID();
-	uint32 mobileCRC = getConversationMobile();
+	String mobile = getConversationMobile();
+	uint32 mobileCRC = mobile.hashCode();
 
 	StartNpcConversation* conv = new StartNpcConversation(playerCreature, oid, 0, "", mobileCRC);
 
 	playerCreature->sendMessage(conv);
 
-	uint32 convoCRC = getConversationTemplate();
+	String convo = getConversationTemplate();
+	uint32 convoCRC = convo.hashCode();
 
 	ConversationTemplate* conversationTemplate = CreatureTemplateManager::instance()->getConversationTemplate(convoCRC);
 
@@ -69,14 +71,4 @@ bool SpaceStationObjectImplementation::sendConversationStartTo(SceneObject* play
 	}
 
 	return true;
-}
-
-float SpaceStationObjectImplementation::getOutOfRangeDistance() const {
-	return ZoneServer::SPACESTATIONRANGE;
-}
-
-int SpaceStationObjectImplementation::getReceiverFlags() const {
-	int type = CloseObjectsVector::SPACESTATIONTYPE;
-
-	return type | ShipAiAgentImplementation::getReceiverFlags();
 }

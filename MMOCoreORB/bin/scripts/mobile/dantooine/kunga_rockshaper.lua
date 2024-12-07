@@ -34,7 +34,12 @@ kunga_rockshaper = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "kunga_tribe_tier_3", chance = 10000000}
+				{group = "junk", chance = 3500000},
+				{group = "loot_kit_parts", chance = 3000000},
+				{group = "armor_attachments", chance = 500000},
+				{group = "clothing_attachments", chance = 500000},
+				{group = "wearables_all", chance = 2000000},
+				{group = "power_crystals", chance = 500000}
 			}
 		}
 	},

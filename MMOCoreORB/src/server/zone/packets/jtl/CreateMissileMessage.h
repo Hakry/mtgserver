@@ -82,7 +82,7 @@ public:
 		insertInt(targetSlot);
 	}
 
-	CreateMissileMessage(ShipObject* source, ShipObject* target, const ShipMissile* missile) : BaseMessage() {
+	CreateMissileMessage(SceneObject* source, SceneObject* target, const ShipMissile* missile) : BaseMessage() {
 		insertShort(0x14);
 		insertInt(0x721CF08B);  // CRC
 
@@ -96,14 +96,13 @@ public:
 		insertFloat(missilePosition.getZ());
 		insertFloat(missilePosition.getY());
 
-		int timeToHit = (int)(missile->getTimeToHit() * 0.001f);
-		Vector3 targetPosition = missile->getTargetPosition(target, timeToHit);
+		const Vector3& targetPosition = target->getPosition();
 
 		insertFloat(targetPosition.getX());
 		insertFloat(targetPosition.getZ());
 		insertFloat(targetPosition.getY());
 
-		insertInt(timeToHit);
+		insertInt((int)(missile->getTimeToHit() * 0.001f));
 		insertInt(missile->getProjectileType());
 		insertInt(missile->getWeaponSlot());
 		insertInt(missile->getComponentSlot());

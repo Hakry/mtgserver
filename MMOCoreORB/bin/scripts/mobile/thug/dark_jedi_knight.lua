@@ -32,7 +32,16 @@ dark_jedi_knight = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "dark_jedi_tier_5", chance = 10000000}
+				{group = "holocron_dark", chance = 600000},
+				{group = "holocron_light", chance = 600000},
+				{group = "power_crystals", chance = 600000},
+				{group = "rifles", chance = 1300000},
+				{group = "pistols", chance = 1300000},
+				{group = "melee_weapons", chance = 1300000},
+				{group = "armor_attachments", chance = 1100000},
+				{group = "clothing_attachments", chance = 1100000},
+				{group = "carbines", chance = 1300000},
+				{group = "dark_jedi_common", chance = 800000}
 			}
 		}
 	},
@@ -45,7 +54,7 @@ dark_jedi_knight = Creature:new {
 
 	-- primaryAttacks and secondaryAttacks should be separate skill groups specific to the weapon type listed in primaryWeapon and secondaryWeapon
 	-- Use merge() to merge groups in creatureskills.lua together. If a weapon is set to "none", set the attacks variable to empty brackets
-	primaryAttacks = merge(lightsabermaster,forcepowermaster),
+	primaryAttacks = lightsabermaster,
 	secondaryAttacks = forcepowermaster
 }
 

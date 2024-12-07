@@ -22,7 +22,6 @@ corsec_cdef_pistol = {
 		{"attackactioncost",28,19,0},
 		{"attackmindcost",15,10,0},
 	},
-	skillMods = {{"pistol_speed", 3}},
 	customizationStringNames = {},
 	customizationValues = {},
 

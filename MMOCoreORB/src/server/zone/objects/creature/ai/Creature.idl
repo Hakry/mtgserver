@@ -226,7 +226,15 @@ class Creature extends AiAgent {
 	@local
 	public native void sendMessage(BasePacket msg);
 
-	public native int getAdultLevel();
+	public int getAdultLevel() {
+		if (super.petDeed) {
+			return super.petDeed.getLevel();
+		}
+		if (!super.npcTemplate)
+			return super.getLevel();
+
+		return super.npcTemplate.getLevel();
+	}
 
 	@read
 	public native boolean hasBeenMilked();

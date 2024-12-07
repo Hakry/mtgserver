@@ -3,6 +3,8 @@ rikkh = Creature:new {
 	socialGroup = "townsperson",
 	faction = "townsperson",
 	mobType = MOB_NPC,
+	planetMapCategory = "trainer",
+	planetMapSubCategory = "trainer_pilot_privateer",
 	level = 19,
 	chanceHit = 0.33,
 	damageMin = 180,
@@ -23,7 +25,7 @@ rikkh = Creature:new {
 	ferocity = 0,
 	pvpBitmask = NONE,
 	creatureBitmask = NONE,
-	optionsBitmask = AIENABLED + JTLINTERESTING,
+	optionsBitmask = AIENABLED,
 	diet = HERBIVORE,
 
 	templates = {"object/mobile/space_privateer_tier2_corellia.iff"},

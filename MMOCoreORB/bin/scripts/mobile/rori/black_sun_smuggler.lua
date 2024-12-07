@@ -33,7 +33,12 @@ black_sun_smuggler = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "rori_death_watch_tier_1", chance = 10000000}
+				{group = "junk", chance = 6500000},
+				{group = "pistols", chance = 800000},
+				{group = "rifles", chance = 800000},
+				{group = "carbines", chance = 800000},
+				{group = "wearables_common", chance = 550000},
+				{group = "wearables_uncommon", chance = 550000}
 			}
 		}
 	},

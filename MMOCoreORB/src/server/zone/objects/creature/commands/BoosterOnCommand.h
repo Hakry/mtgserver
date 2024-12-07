@@ -33,42 +33,36 @@ public:
 
 		ManagedReference<ShipObject*> ship = rootParent->asShipObject();
 
-		if (ship == nullptr || ship->isBoosterActive())
+		if (ship == nullptr)
 			return GENERALERROR;
 
-		ManagedReference<CreatureObject*> pilot = ship->getPilot();
+		StringIdChatParameter param;
 
-		if (pilot == nullptr || pilot != creature) {
-			creature->sendSystemMessage("@space/space_interaction:booster_pilot_only");
-			return GENERALERROR;
-		}
+		if (ship->getComponentObject(Components::BOOSTER) == nullptr) {
+			param.setStringId("@space/space_interaction:no_booster");
+			creature->sendSystemMessage(param);
 
-		if (!ship->isComponentInstalled(Components::BOOSTER)) {
-			creature->sendSystemMessage("@space/space_interaction:no_booster");
 			return GENERALERROR;
 		}
 
-		if (!ship->isComponentFunctional(Components::BOOSTER)) {
-			creature->sendSystemMessage("@space/space_interaction:booster_disabled");
+		if (ship->getBoosterEnergy() < ship->getBoosterRechargeRate()) {
+			param.setStringId("@space/space_interaction:booster_low_energy");
+			creature->sendSystemMessage(param);
+
 			return GENERALERROR;
 		}
 
 		if (!ship->isReadyToBoost()) {
-			creature->sendSystemMessage("@space/space_interaction:booster_not_ready");
-			return GENERALERROR;
-		}
+			param.setStringId("@space/space_interaction:booster_not_ready");
+			creature->sendSystemMessage(param);
 
-		float boosterEfficiency = Math::clamp(0.1f, ship->getComponentEfficiency(Components::BOOSTER), 10.f);
-		float boosterConsumption = ship->getBoosterConsumptionRate() / boosterEfficiency;
-
-		if (ship->getBoosterEnergy() < boosterConsumption) {
-			creature->sendSystemMessage("@space/space_interaction:booster_low_energy");
 			return GENERALERROR;
 		}
 
 		Locker slock(ship, creature);
 
 		ship->addComponentFlag(Components::BOOSTER, ShipComponentFlag::ACTIVE, true);
+		ship->restartBooster();
 
 		return SUCCESS;
 	}

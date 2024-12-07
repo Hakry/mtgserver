@@ -20,13 +20,12 @@ public:
 	void run() {
 		ManagedReference<CreatureObject*> player = play.get();
 
-		if (player == nullptr) {
+		if (player == nullptr)
 			return;
-		}
 
 		Locker locker(player);
 
-		// info(true) << "StoreSpawnedChildrenTask -- for " << player->getDisplayedName() << " Total Devices: " << devices.size();
+		// info(true) << "StoreSpawnedChildrenTask -- for " << player->getDisplayedName();
 
 		for (int i = 0; i < devices.size(); ++i) {
 			ManagedReference<ControlDevice*> controlDevice = devices.get(i).get();
@@ -39,14 +38,6 @@ public:
 
 				if (pet == nullptr)
 					continue;
-
-				if (pet->isDroidObject()) {
-					auto droidRoot = pet->getRootParent();
-
-					if (droidRoot != nullptr && droidRoot->isShipObject() && droidRoot->getSlottedObject("ship_droid") == pet) {
-						continue;
-					}
-				}
 
 				Locker clocker(pet, player);
 
@@ -67,7 +58,7 @@ public:
 
 				StoreShipTask* storeTask = new StoreShipTask(player, shipDevice, ghost->getSpaceLaunchZone(), ghost->getSpaceLaunchLocation());
 
-				// info(true) << "StoreSpawnedChildrenTask -- executing StoreShipTask - for Ship Device: " << shipDevice->getDisplayedName();
+				// info(true) << "executing StoreShipTask - for Ship Device: " << shipDevice->getDisplayedName();
 
 				if (storeTask != nullptr)
 					storeTask->execute();

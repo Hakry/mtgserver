@@ -32,7 +32,15 @@ lance_bombardier = Creature:new {
 	lootGroups = {
 		{
 			groups = {
-				{group = "imperial_tier_1", chance = 10000000}
+				{group = "color_crystals", chance = 100000},
+				{group = "junk", chance = 4700000},
+				{group = "rifles", chance = 1000000},
+				{group = "pistols", chance = 1000000},
+				{group = "melee_weapons", chance = 1000000},
+				{group = "carbines", chance = 1000000},
+				{group = "clothing_attachments", chance = 100000},
+				{group = "armor_attachments", chance = 100000},
+				{group = "wearables_common", chance = 1000000}
 			}
 		}
 	},
